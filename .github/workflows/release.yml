@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.artifact }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: windows-x64
+          - os: ubuntu-latest
+            artifact: linux-x64
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: server
+
+      - name: Install NASM (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install nasm -y --no-progress
+          "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Install build tools (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y cmake clang libclang-dev pkg-config
+
+      - name: Build release binary
+        run: cargo build --release --locked --manifest-path server/Cargo.toml
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path server/Cargo.toml -Pattern '^version\s*=\s*"([^"]+)"' |
+            Select-Object -First 1).Matches[0].Groups[1].Value
+          $stage = "stage/nordtorrent-$version-windows-x64"
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+          Copy-Item server/target/release/nordtorrent.exe $stage
+          Copy-Item packaging/windows/run-nordtorrent.cmd $stage
+          Copy-Item packaging/windows/README.txt $stage
+          Copy-Item README.md,README.da.md,LICENSE $stage
+          Compress-Archive -Path "$stage/*" -DestinationPath "nordtorrent-$version-windows-x64.zip"
+          "ASSET=nordtorrent-$version-windows-x64.zip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' server/Cargo.toml | head -n 1)
+          stage="stage/nordtorrent-$version-linux-x64"
+          mkdir -p "$stage"
+          cp server/target/release/nordtorrent "$stage/"
+          cp README.md README.da.md LICENSE "$stage/"
+          tar -czf "nordtorrent-$version-linux-x64.tar.gz" -C stage "nordtorrent-$version-linux-x64"
+          echo "ASSET=nordtorrent-$version-linux-x64.tar.gz" >> "$GITHUB_ENV"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ env.ASSET }}
+          if-no-files-found: error
+
+      - name: Attach to GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ASSET }}
+          generate_release_notes: true
+
+  source:
+    name: Source archive
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Create source zip
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' server/Cargo.toml | head -n 1)
+          git archive --format=zip --prefix="nordtorrent-$version/" -o "nordtorrent-$version-source.zip" HEAD
+          echo "ASSET=nordtorrent-$version-source.zip" >> "$GITHUB_ENV"
+
+      - name: Upload source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: source
+          path: ${{ env.ASSET }}
+          if-no-files-found: error
+
+      - name: Attach source to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ASSET }}
+          generate_release_notes: true

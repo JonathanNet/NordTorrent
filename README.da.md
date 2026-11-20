@@ -57,6 +57,25 @@ Inspirationen er rtorrent/rutorrent, men overfladen er gjort mere nutidig: mørk
 - **Android TV**: native Kotlin-app med D-pad-fokus, Media3/ExoPlayer, fortsæt-afspilning og krypteret token-lagring i Android Keystore. Samme app virker på Android-telefoner. Appen er på engelsk som standard og skifter til dansk på danske enheder.
 - **Docker**: multi-stage image, ikke-root bruger, read-only root-filsystem, healthcheck og begrænsede capabilities.
 
+## Download
+
+Færdige builds ligger under [Releases](../../releases):
+
+| Platform | Fil | Bemærkning |
+| --- | --- | --- |
+| Windows 10/11 x64 | `nordtorrent-<version>-windows-x64.zip` | Udpak og kør `run-nordtorrent.cmd` |
+| Linux x64 | `nordtorrent-<version>-linux-x64.tar.gz` | Kør `./nordtorrent` med de miljøvariabler du har brug for, eller brug Docker nedenfor |
+| Kilde | `nordtorrent-<version>-source.zip` | Samme indhold som dette repository på det tag |
+
+Du kan også hente kilden via **Code -> Download ZIP** eller klone repositoryet. Hvert `v*`-tag bygges automatisk af GitHub Actions, så Windows- og Linux-binæren altid matcher kilde-arkivet for samme tag. Se [docs/RELEASE.md](docs/RELEASE.md) for release-flowet.
+
+### Windows-buildet
+
+1. Udpak det et fast sted, fx `C:\NordTorrent`.
+2. Dobbeltklik på `run-nordtorrent.cmd`.
+3. Åbn <http://127.0.0.1:8080> og opret administratoren.
+
+Launcheren holder `data\` og `downloads\` ved siden af exe-filen, så hele installationen kan flyttes som én mappe. Vil du bruge en mediedisk, så ret `NORDTORRENT_DOWNLOAD_DIR` i `cmd`-filen. `README.txt` i zip-filen beskriver firewall, HTTPS og de valgfrie ffmpeg-previewbilleder.
 ## Hurtig start med Docker
 
 Forudsætning: Docker + Docker Compose på en Linux-maskine (fx en Proxmox-VM eller -LXC med Docker).
