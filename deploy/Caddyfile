@@ -1,0 +1,22 @@
+# Optional TLS terminator for NordTorrent.
+# Point a DNS record at the Proxmox host, open ports 80/443, then run:
+#   caddy run --config deploy/Caddyfile
+#
+# Replace torrent.example.dk with your own hostname. Caddy obtains a
+# Let's Encrypt certificate automatically.
+{
+    email you@example.dk
+}
+
+torrent.example.dk {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:8080
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+        -Server
+    }
+}

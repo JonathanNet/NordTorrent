@@ -1,0 +1,12 @@
+.git
+.gitignore
+.tmp
+data
+downloads
+server/target
+server/.cargo
+android-tv
+**/*.log
+.env
+.env.*
+!.env.example

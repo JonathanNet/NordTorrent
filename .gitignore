@@ -1,0 +1,37 @@
+# Runtime data
+/data/
+/downloads/
+.env
+
+# Local deployment scripts contain SSH/Dockhand credentials. The whole folder
+# is local-only and is never part of a release.
+/scripts/
+
+# Build output
+server/target/
+server/.cargo/
+*.log
+
+# Android / Gradle
+android-tv/.gradle/
+android-tv/.idea/
+android-tv/build/
+android-tv/app/build/
+android-tv/local.properties
+android-tv/captures/
+*.apk
+*.aab
+*.jks
+*.keystore
+!dist/*.apk
+
+# Local scratch space
+.tmp/
+nordtorrent-release/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

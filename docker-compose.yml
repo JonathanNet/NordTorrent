@@ -1,0 +1,54 @@
+services:
+  nordtorrent:
+    build:
+      context: .
+    image: nordtorrent:local
+    container_name: nordtorrent
+    restart: unless-stopped
+    init: true
+    user: "${PUID:-1000}:${PGID:-1000}"
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+      - "42000-42009:42000-42009/tcp"
+      - "42000-42009:42000-42009/udp"
+    environment:
+      NORDTORRENT_PUBLIC_URL: "${NORDTORRENT_PUBLIC_URL:-http://192.168.1.101:8080}"
+      NORDTORRENT_COOKIE_SECURE: "${NORDTORRENT_COOKIE_SECURE:-false}"
+      NORDTORRENT_TRUST_PROXY: "${NORDTORRENT_TRUST_PROXY:-false}"
+      NORDTORRENT_SESSION_HOURS: "${NORDTORRENT_SESSION_HOURS:-720}"
+      NORDTORRENT_TORRENT_PORT_START: "42000"
+      NORDTORRENT_TORRENT_PORT_END: "42009"
+      NORDTORRENT_DEFAULT_DOWNLOAD_FOLDER: "${NORDTORRENT_DEFAULT_DOWNLOAD_FOLDER:-}"
+      NORDTORRENT_EXTERNAL_IP: "${NORDTORRENT_EXTERNAL_IP:-}"
+      NORDTORRENT_EXTERNAL_PORT: "${NORDTORRENT_EXTERNAL_PORT:-}"
+      NORDTORRENT_IP_LOOKUP_URL: "${NORDTORRENT_IP_LOOKUP_URL:-https://api.ipify.org}"
+      NORDTORRENT_ADMIN_USER: "${NORDTORRENT_ADMIN_USER:-}"
+      NORDTORRENT_ADMIN_PASSWORD: "${NORDTORRENT_ADMIN_PASSWORD:-}"
+      TZ: "${TZ:-Europe/Copenhagen}"
+      RUST_LOG: "${RUST_LOG:-nordtorrent=info,tower_http=warn,librqbit=warn}"
+    volumes:
+      - "${DATA_DIR:-./data}:/data"
+      - "${DOWNLOAD_DIR:-./downloads}:/downloads"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    stop_grace_period: 30s
+    healthcheck:
+      # The app always listens on 8080 inside the container; WEB_PORT is only the host port.
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

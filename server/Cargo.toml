@@ -1,0 +1,54 @@
+[package]
+name = "nordtorrent"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+description = "A secure, self-hosted torrent client with a modern web UI and Android TV API"
+license = "MIT"
+
+[dependencies]
+anyhow = "1"
+argon2 = { version = "0.5", features = ["std"] }
+axum = { version = "0.8", features = ["multipart", "macros"] }
+base64 = "0.22"
+bytes = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+data-encoding = "2"
+futures = "0.3"
+hmac = "0.12"
+http = "1"
+librqbit = { version = "=8.1.1", default-features = false, features = ["rust-tls"] }
+mime_guess = "2"
+qrcodegen = "1.8"
+quick-xml = "0.37"
+rand = "0.8"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha1 = "0.10"
+sha2 = "0.10"
+subtle = "2.6"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["io"] }
+tower-http = { version = "0.6", features = ["timeout", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[patch.crates-io]
+# Vendored librqbit 8.1.1 with private-tracker handling fixed:
+# - all trackers embedded in a private torrent are used
+# - public/global trackers are never added to a private info hash
+librqbit = { path = "../vendor/librqbit" }
+# Vendored 3.0.0: send the standard one-shot `event=completed` announce to
+# HTTP trackers so private trackers can record seedtime.
+librqbit-tracker-comms = { path = "../vendor/librqbit-tracker-comms" }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+panic = "abort"

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NordTorrent</string>
+    <string name="app_tagline">YOUR HOME. YOUR MOVIES.</string>
+
+    <string name="login_title">Connect to\nNordTorrent</string>
+    <string name="login_subtitle">Sign in with the account you created in the server\'s web panel.</string>
+    <string name="login_eyebrow">CONNECT</string>
+    <string name="login_heading">Sign in</string>
+    <string name="server_label">Server address</string>
+    <string name="server_hint">http://192.168.1.10:8080</string>
+    <string name="username_label">Username</string>
+    <string name="password_label">Password</string>
+    <string name="login_button">Connect to server</string>
+    <string name="login_checking">Connecting…</string>
+    <string name="login_error">Could not connect. Check the address and your details.</string>
+    <string name="setup_hint">The server is not set up yet. Open the web panel on a computer and create the administrator first.</string>
+    <string name="login_footer">Use HTTPS when the server is reachable from the internet.</string>
+
+    <string name="nav_library">Library</string>
+    <string name="nav_transfers">Transfers</string>
+    <string name="nav_settings">Settings</string>
+    <string name="library_eyebrow">YOUR LIBRARY</string>
+    <string name="library_title">Ready to watch</string>
+    <string name="library_subtitle">Movies and audio from your torrents. Tap, or select with OK on the remote.</string>
+    <string name="transfers_title">Transfers</string>
+    <string name="transfers_subtitle">Status for every torrent on the server.</string>
+    <string name="status_eyebrow">SERVER STATUS</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Account, server and connection.</string>
+    <string name="settings_eyebrow">ACCOUNT &amp; SERVER</string>
+    <string name="empty_library">The library is empty. Add a torrent in the web panel.</string>
+    <string name="empty_transfers">No transfers yet.</string>
+    <string name="loading">Loading…</string>
+    <string name="error_generic">Something went wrong. Try again.</string>
+    <string name="hint_navigation">OK = select · BACK = back</string>
+
+    <string name="settings_user">Account</string>
+    <string name="settings_server">Server</string>
+    <string name="settings_version">App version</string>
+    <string name="settings_api">API connection</string>
+    <string name="settings_logout">Sign out</string>
+    <string name="settings_refresh">Refresh now</string>
+    <string name="settings_role_admin">Administrator</string>
+    <string name="settings_role_viewer">Viewer</string>
+    <string name="role_admin">Admin</string>
+    <string name="role_viewer">Viewer</string>
+    <string name="role_admin_label">Administrator</string>
+    <string name="role_viewer_label">Viewer</string>
+
+    <string name="transfer_pause">Pause</string>
+    <string name="transfer_resume">Start</string>
+    <string name="transfer_cancel">Cancel</string>
+    <string name="transfer_actions">Choose action</string>
+    <string name="transfer_paused_ok">The torrent was paused.</string>
+    <string name="transfer_resumed_ok">The torrent is running again.</string>
+    <string name="transfer_no_access">Your account is not allowed to change transfers.</string>
+    <string name="transfer_content_desc">%1$s, %2$s</string>
+    <string name="unknown_torrent">Unknown torrent</string>
+
+    <string name="state_downloading">Downloading</string>
+    <string name="state_seeding">Seeding</string>
+    <string name="state_paused">Paused</string>
+    <string name="state_initializing">Metadata</string>
+    <string name="state_error">Error</string>
+    <string name="state_finished">Finished</string>
+    <string name="state_ready">Ready</string>
+    <string name="no_traffic">No traffic</string>
+
+    <string name="media_meta">%1$s · %2$d%% downloaded</string>
+    <string name="media_badge_audio">AUDIO</string>
+    <string name="media_badge_video">VIDEO</string>
+    <string name="media_play_item">Play %1$s</string>
+
+    <string name="player_title">Player</string>
+    <string name="player_error">The file could not be played. Try another file, or check the server.</string>
+    <string name="player_hint">OK = play/pause · BACK = back</string>
+    <string name="player_buffering">Buffering…</string>
+    <string name="player_back">← Back</string>
+
+    <string name="logout_confirm_title">Sign out?</string>
+    <string name="logout_confirm_text">You will need to enter the password again next time.</string>
+    <string name="logout_yes">Sign out</string>
+    <string name="logout_no">Stay here</string>
+
+    <string name="token_secure_error">Could not store the login securely on this device.</string>
+    <string name="auth_expired">Your session expired. Sign in again.</string>
+    <string name="connection_error">Could not connect to the server.</string>
+    <string name="certificate_error">The server certificate could not be validated.</string>
+    <string name="bad_url">The server address is invalid. Use e.g. http://192.168.1.101:8080.</string>
+    <string name="setup_required">The server needs setup. Create the administrator in the web panel first.</string>
+
+    <string name="error_invalid_response">The server returned an invalid response.</string>
+    <string name="error_tls">The server certificate could not be validated. Use HTTPS with a valid certificate.</string>
+    <string name="error_dns">The server address could not be found.</string>
+    <string name="error_timeout">The server did not respond in time.</string>
+    <string name="error_unauthorized">Wrong username or password.</string>
+    <string name="error_forbidden">Your account is not allowed to do that.</string>
+    <string name="error_not_found">The server could not find what was requested.</string>
+    <string name="error_rate_limited">Too many attempts. Try again in a moment.</string>
+    <string name="error_server">The server responded with error %1$d.</string>
+    <string name="error_missing_server">The server address is missing.</string>
+</resources>

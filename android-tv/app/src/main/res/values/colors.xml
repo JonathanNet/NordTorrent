@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#080B0E</color>
+    <color name="bg_soft">#0C1115</color>
+    <color name="panel">#10161B</color>
+    <color name="panel_raised">#161E24</color>
+    <color name="line">#232C33</color>
+    <color name="line_strong">#34414A</color>
+    <color name="text">#F3F6F2</color>
+    <color name="muted">#8D9AA3</color>
+    <color name="muted_strong">#B7C2C9</color>
+    <color name="lime">#C6F45C</color>
+    <color name="lime_strong">#ADF12A</color>
+    <color name="lime_soft">#1F2A16</color>
+    <color name="cyan">#7DD3FC</color>
+    <color name="red">#FB7185</color>
+    <color name="amber">#FBBF24</color>
+    <color name="transparent">#00000000</color>
+    <color name="scrim">#CC050708</color>
+</resources>

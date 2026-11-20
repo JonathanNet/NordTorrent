@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NordTorrent</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <span class="mark">N</span>
+        <div>
+          <strong>NordTorrent</strong>
+          <span data-i18n="header.subtitle">Download helper</span>
+        </div>
+      </div>
+      <button id="settings-button" class="icon-button" type="button" data-i18n-title="settings.title" title="Settings" aria-label="Settings">⚙</button>
+    </header>
+
+    <main>
+      <section id="setup-view" hidden>
+        <p class="eyebrow" data-i18n="setup.eyebrow">CONNECT</p>
+        <h1 data-i18n="setup.title">Connect to your server</h1>
+        <p class="lead" data-i18n="setup.lead">Sign in with your NordTorrent account. The password is not stored - only the login token.</p>
+        <form id="setup-form" class="stack">
+          <label class="field">
+            <span data-i18n="common.server">Server address</span>
+            <input id="server-input" type="text" inputmode="url" autocomplete="url" placeholder="http://192.168.1.10:8080" required />
+          </label>
+          <label class="field">
+            <span data-i18n="common.username">Username</span>
+            <input id="username-input" type="text" autocomplete="username" required />
+          </label>
+          <label class="field">
+            <span data-i18n="common.password">Password</span>
+            <input id="password-input" type="password" autocomplete="current-password" required />
+          </label>
+          <label class="toggle-row">
+            <input id="popup-toggle" type="checkbox" />
+            <span class="toggle"></span>
+            <span data-i18n="common.popupToggle">Open popup for .torrent downloads</span>
+          </label>
+          <p id="setup-error" class="error" hidden></p>
+          <button id="setup-submit" class="primary" type="submit" data-i18n="setup.submit">Sign in and save</button>
+        </form>
+      </section>
+
+      <section id="settings-view" hidden>
+        <p class="eyebrow" data-i18n="settings.eyebrow">SETTINGS</p>
+        <h1 data-i18n="settings.title">Settings</h1>
+        <p class="lead" data-i18n="settings.lead">You stay signed in. Changes here never sign you out.</p>
+        <form id="settings-form" class="stack">
+          <label class="field">
+            <span data-i18n="common.server">Server address</span>
+            <input id="settings-server" type="text" inputmode="url" autocomplete="url" required />
+          </label>
+          <label class="field">
+            <span data-i18n="settings.language">Language</span>
+            <select id="language-select">
+              <option value="en">English</option>
+              <option value="da">Dansk</option>
+            </select>
+          </label>
+          <label class="toggle-row">
+            <input id="settings-popup-toggle" type="checkbox" />
+            <span class="toggle"></span>
+            <span data-i18n="common.popupToggle">Open popup for .torrent downloads</span>
+          </label>
+          <p id="settings-popup-hint" class="hint" data-i18n="settings.savedNow">Saved immediately.</p>
+          <p id="settings-error" class="error" hidden></p>
+          <button id="settings-save" class="primary" type="submit" data-i18n="settings.save">Save settings</button>
+        </form>
+        <div class="settings-actions">
+          <button id="settings-back" class="secondary" type="button" data-i18n="settings.back">Back</button>
+          <button id="settings-logout" class="link-button danger-link" type="button" data-i18n="common.signOut">Sign out</button>
+        </div>
+        <p class="hint" data-i18n="settings.serverNote">Changing the server requires a new sign-in.</p>
+      </section>
+
+      <section id="main-view" hidden>
+        <div id="download-card" class="download-card">
+          <div class="download-icon">↓</div>
+          <div class="download-copy">
+            <strong id="download-name" data-i18n="main.none">No .torrent found</strong>
+            <span id="download-source" data-i18n="main.noneSub">Download a .torrent to get started.</span>
+          </div>
+          <span id="download-state" class="pill" data-i18n="main.new">New</span>
+        </div>
+
+        <div class="magnet-box">
+          <p class="eyebrow section-eyebrow" data-i18n="magnet.eyebrow">MAGNET LINK</p>
+          <label class="field">
+            <span data-i18n="magnet.label">Magnet link or 40-character info hash</span>
+            <textarea id="magnet-input" rows="2" placeholder="magnet:?xt=urn:btih:…" spellcheck="false"></textarea>
+          </label>
+          <button id="magnet-add" class="primary magnet-add" type="button" data-i18n="magnet.add" disabled>
+            Add magnet
+          </button>
+        </div>
+
+        <label class="field extension-label">
+          <span data-i18n="common.label">Label</span>
+          <select id="label-select">
+            <option value="" data-i18n="common.noLabel">No label</option>
+          </select>
+        </label>
+
+        <p class="eyebrow section-eyebrow" data-i18n="folder.eyebrow">DOWNLOAD FOLDER</p>
+        <div class="path-bar">
+          <button id="folder-up" class="path-button" type="button" data-i18n-title="folder.up" title="Go up" aria-label="Go up">↑</button>
+          <span id="current-path">/downloads/</span>
+        </div>
+        <div class="folder-search">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="folder-search" type="search" data-i18n-placeholder="folder.search" placeholder="Search this folder…" autocomplete="off" />
+          <button id="folder-search-clear" class="search-clear" type="button" data-i18n-title="folder.clear" title="Clear search" aria-label="Clear search">×</button>
+        </div>
+        <div id="folder-entries" class="folder-list"></div>
+        <p id="folder-status" class="hint" data-i18n="folder.pick">Select a folder on the server.</p>
+
+        <button id="choose-folder" class="secondary choose-folder" type="button" data-i18n="folder.choose">Choose this folder</button>
+
+        <label class="toggle-row main-popup-toggle">
+          <input id="main-popup-toggle" type="checkbox" />
+          <span class="toggle"></span>
+          <span data-i18n="common.popupToggle">Open popup for .torrent downloads</span>
+        </label>
+
+        <div class="actions">
+          <button id="pick-file" class="secondary" type="button" data-i18n="actions.pick">Choose .torrent file</button>
+          <button id="add-button" class="primary" type="button" data-i18n="actions.add" disabled>Add to server</button>
+        </div>
+        <input id="file-fallback" type="file" accept=".torrent,application/x-bittorrent" hidden />
+
+        <p id="main-status" class="status" hidden></p>
+        <div class="footer">
+          <a id="open-server" href="#" target="_blank" rel="noopener" data-i18n="footer.open">Open NordTorrent</a>
+          <button id="logout-button" class="link-button" type="button" data-i18n="common.signOut">Sign out</button>
+        </div>
+      </section>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NordTorrent</string>
+    <string name="app_tagline">DIT HJEM. DINE FILM.</string>
+
+    <string name="login_title">Forbind til\nNordTorrent</string>
+    <string name="login_subtitle">Log ind med den konto, du oprettede i serverens webpanel.</string>
+    <string name="login_eyebrow">FORBIND</string>
+    <string name="login_heading">Log ind</string>
+    <string name="server_label">Serveradresse</string>
+    <string name="server_hint">http://192.168.1.10:8080</string>
+    <string name="username_label">Brugernavn</string>
+    <string name="password_label">Adgangskode</string>
+    <string name="login_button">Forbind til server</string>
+    <string name="login_checking">Forbinder…</string>
+    <string name="login_error">Kunne ikke forbinde. Kontrollér adresse og oplysninger.</string>
+    <string name="setup_hint">Serveren er ikke sat op endnu. Åbn webpanelet på computeren og opret administratoren først.</string>
+    <string name="login_footer">Brug HTTPS, når serveren nås udefra.</string>
+
+    <string name="nav_library">Bibliotek</string>
+    <string name="nav_transfers">Overførsler</string>
+    <string name="nav_settings">Indstillinger</string>
+    <string name="library_eyebrow">DIT BIBLIOTEK</string>
+    <string name="library_title">Klar til at se</string>
+    <string name="library_subtitle">Film og lyd fra dine torrents. Tryk – eller vælg med OK på fjernbetjeningen.</string>
+    <string name="transfers_title">Overførsler</string>
+    <string name="transfers_subtitle">Status for alle torrents på serveren.</string>
+    <string name="status_eyebrow">SERVERSTATUS</string>
+    <string name="settings_title">Indstillinger</string>
+    <string name="settings_subtitle">Konto, server og forbindelse.</string>
+    <string name="settings_eyebrow">KONTO &amp; SERVER</string>
+    <string name="empty_library">Biblioteket er tomt. Tilføj en torrent i webpanelet.</string>
+    <string name="empty_transfers">Ingen overførsler endnu.</string>
+    <string name="loading">Henter…</string>
+    <string name="error_generic">Noget gik galt. Prøv igen.</string>
+    <string name="hint_navigation">OK = vælg · BACK = tilbage</string>
+
+    <string name="settings_user">Konto</string>
+    <string name="settings_server">Server</string>
+    <string name="settings_version">Appversion</string>
+    <string name="settings_api">API-forbindelse</string>
+    <string name="settings_logout">Log ud</string>
+    <string name="settings_refresh">Opdatér nu</string>
+    <string name="settings_role_admin">Administrator</string>
+    <string name="settings_role_viewer">Seer</string>
+    <string name="role_admin">Admin</string>
+    <string name="role_viewer">Seer</string>
+    <string name="role_admin_label">Administrator</string>
+    <string name="role_viewer_label">Seer</string>
+
+    <string name="transfer_pause">Pause</string>
+    <string name="transfer_resume">Start</string>
+    <string name="transfer_cancel">Annuller</string>
+    <string name="transfer_actions">Vælg handling</string>
+    <string name="transfer_paused_ok">Torrentet er sat på pause.</string>
+    <string name="transfer_resumed_ok">Torrentet kører igen.</string>
+    <string name="transfer_no_access">Din konto må ikke ændre overførsler.</string>
+    <string name="transfer_content_desc">%1$s, %2$s</string>
+    <string name="unknown_torrent">Ukendt torrent</string>
+
+    <string name="state_downloading">Downloader</string>
+    <string name="state_seeding">Seeder</string>
+    <string name="state_paused">Pauset</string>
+    <string name="state_initializing">Metadata</string>
+    <string name="state_error">Fejl</string>
+    <string name="state_finished">Færdig</string>
+    <string name="state_ready">Klar</string>
+    <string name="no_traffic">Ingen trafik</string>
+
+    <string name="media_meta">%1$s · %2$d%% hentet</string>
+    <string name="media_badge_audio">LYD</string>
+    <string name="media_badge_video">VIDEO</string>
+    <string name="media_play_item">Afspil %1$s</string>
+
+    <string name="player_title">Afspiller</string>
+    <string name="player_error">Filen kunne ikke afspilles. Prøv en anden fil, eller kontrollér serveren.</string>
+    <string name="player_hint">OK = play/pause · BACK = tilbage</string>
+    <string name="player_buffering">Buffer…</string>
+    <string name="player_back">← Tilbage</string>
+
+    <string name="logout_confirm_title">Log ud?</string>
+    <string name="logout_confirm_text">Du skal indtaste adgangskoden igen næste gang.</string>
+    <string name="logout_yes">Log ud</string>
+    <string name="logout_no">Bliv her</string>
+
+    <string name="token_secure_error">Kunne ikke gemme login sikkert på denne enhed.</string>
+    <string name="auth_expired">Sessionen er udløbet. Log ind igen.</string>
+    <string name="connection_error">Kunne ikke få forbindelse til serveren.</string>
+    <string name="certificate_error">Serverens certifikat kunne ikke valideres.</string>
+    <string name="bad_url">Serveradressen er ugyldig. Brug fx http://192.168.1.101:8080.</string>
+    <string name="setup_required">Serveren mangler opsætning. Opret administratoren i webpanelet først.</string>
+
+    <string name="error_invalid_response">Serveren sendte et ugyldigt svar.</string>
+    <string name="error_tls">Serverens certifikat kunne ikke valideres. Brug HTTPS med et gyldigt certifikat.</string>
+    <string name="error_dns">Serveradressen kunne ikke findes.</string>
+    <string name="error_timeout">Serveren svarede ikke i tide.</string>
+    <string name="error_unauthorized">Forkert brugernavn eller adgangskode.</string>
+    <string name="error_forbidden">Din konto har ikke adgang til denne handling.</string>
+    <string name="error_not_found">Serveren fandt ikke det ønskede.</string>
+    <string name="error_rate_limited">For mange forsøg. Prøv igen om lidt.</string>
+    <string name="error_server">Serveren svarede med fejl %1$d.</string>
+    <string name="error_missing_server">Serveradressen mangler.</string>
+</resources>

@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0d10" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="description" content="NordTorrent – en sikker, selvhostet torrentklient til dit hjemmenetværk." />
+    <title>NordTorrent</title>
+    <script src="/assets/theme.js"></script>
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div id="boot-screen" class="boot-screen" aria-live="polite">
+      <div class="boot-mark"><span>N</span></div>
+      <div class="boot-text">NordTorrent</div>
+      <div class="boot-line"><span></span></div>
+    </div>
+
+    <section id="auth-view" class="auth-view" hidden>
+      <div class="auth-glow auth-glow-one"></div>
+      <div class="auth-glow auth-glow-two"></div>
+      <div class="auth-preferences">
+        <select id="auth-language-select" aria-label="Sprog">
+          <option value="da">Dansk</option>
+          <option value="en">English</option>
+        </select>
+        <button id="auth-theme-toggle" class="icon-btn" type="button" aria-label="Skift tema" title="Skift tema">
+          <svg class="icon"><use href="#i-sun"></use></svg>
+        </button>
+      </div>
+      <div class="auth-shell">
+        <div class="auth-story">
+          <div class="brand brand-large">
+            <span class="brand-mark">N</span>
+            <span class="brand-name">NordTorrent</span>
+          </div>
+          <p class="eyebrow">PRIVAT. HURTIGT. DIT.</p>
+          <h1>Filmene bliver<br />hjemme hos dig.</h1>
+          <p class="auth-lead">
+            En rolig, hurtig torrentklient til din egen server – med webpanel,
+            sikker API og Android TV-app.
+          </p>
+          <div class="auth-points">
+            <div><span class="point-dot"></span>Ingen cloud-konto. Dine data bliver lokalt.</div>
+            <div><span class="point-dot"></span>Stream direkte til TV'et.</div>
+            <div><span class="point-dot"></span>Bygget til Proxmox og Docker.</div>
+          </div>
+        </div>
+
+        <div class="auth-card">
+          <div id="login-panel">
+            <p class="eyebrow">VELKOMMEN TILBAGE</p>
+            <h2>Log ind</h2>
+            <p class="muted">Brug din konto fra NordTorrent-serveren.</p>
+            <form id="login-form" class="stack" autocomplete="on">
+              <label class="field">
+                <span>Brugernavn</span>
+                <input id="login-username" name="username" type="text" autocomplete="username" spellcheck="false" required />
+              </label>
+              <label class="field">
+                <span>Adgangskode</span>
+                <input id="login-password" name="password" type="password" autocomplete="current-password" required />
+              </label>
+              <label id="login-totp-field" class="field" hidden>
+                <span>2FA-kode</span>
+                <input id="login-totp" name="totp_code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="123456" />
+              </label>
+              <p id="login-error" class="form-error" role="alert" hidden></p>
+              <button id="login-submit" class="btn btn-primary btn-block" type="submit">
+                <span>Log ind</span>
+                <svg class="icon"><use href="#i-arrow-right"></use></svg>
+              </button>
+            </form>
+            <p class="auth-footnote">
+              <svg class="icon"><use href="#i-lock"></use></svg>
+              Forbindelsen bør køre over HTTPS, når serveren nås udefra.
+            </p>
+          </div>
+
+          <div id="setup-panel" hidden>
+            <p class="eyebrow">FØRSTE OPSÆTNING</p>
+            <h2>Opret administrator</h2>
+            <p class="muted">Lav den første konto. Den kan oprette seere til Android TV bagefter.</p>
+            <form id="setup-form" class="stack" autocomplete="off">
+              <div class="field-row">
+                <label class="field">
+                  <span>Brugernavn</span>
+                  <input id="setup-username" type="text" autocomplete="username" spellcheck="false" minlength="3" maxlength="32" required />
+                </label>
+                <label class="field">
+                  <span>Visningsnavn</span>
+                  <input id="setup-display-name" type="text" maxlength="64" placeholder="Jonathan" />
+                </label>
+              </div>
+              <label class="field">
+                <span>Adgangskode</span>
+                <input id="setup-password" type="password" autocomplete="new-password" minlength="12" required />
+                <small>Mindst 12 tegn. Brug en sætning, du kan huske.</small>
+              </label>
+              <label class="field">
+                <span>Gentag adgangskode</span>
+                <input id="setup-password-confirm" type="password" autocomplete="new-password" minlength="12" required />
+              </label>
+              <p id="setup-error" class="form-error" role="alert" hidden></p>
+              <button id="setup-submit" class="btn btn-primary btn-block" type="submit">
+                <span>Opret server</span>
+                <svg class="icon"><use href="#i-arrow-right"></use></svg>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <p class="auth-version">NordTorrent <span id="auth-version"></span> · Selvhostet med omtanke</p>
+    </section>
+
+    <div id="app" class="app-shell" hidden>
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">N</span>
+          <span class="brand-name">NordTorrent</span>
+        </div>
+
+        <nav class="nav" aria-label="Hovednavigation">
+          <button class="nav-item is-active" data-view="all">
+            <svg class="icon"><use href="#i-grid"></use></svg><span>Alle torrents</span>
+          </button>
+          <button class="nav-item" data-view="downloading">
+            <svg class="icon"><use href="#i-download"></use></svg><span>Downloader</span>
+          </button>
+          <button class="nav-item" data-view="completed">
+            <svg class="icon"><use href="#i-check"></use></svg><span>Færdige</span>
+          </button>
+          <div class="sidebar-labels">
+            <div class="sidebar-label-head">
+              <span>Labels</span>
+              <div class="label-head-actions">
+                <button id="labels-visibility-btn" class="icon-btn" type="button" title="Skjul labels" aria-label="Skjul labels">
+                  <svg class="icon"><use href="#i-eye"></use></svg>
+                </button>
+                <button id="label-add-btn" class="icon-btn" type="button" title="Ny label" aria-label="Ny label">
+                  <svg class="icon"><use href="#i-plus"></use></svg>
+                </button>
+              </div>
+            </div>
+            <div id="label-list" class="label-list"></div>
+          </div>
+
+          <button class="nav-item" data-view="library">
+            <svg class="icon"><use href="#i-tv"></use></svg><span>TV-bibliotek</span>
+          </button>
+          <button class="nav-item" data-view="stats">
+            <svg class="icon"><use href="#i-chart"></use></svg><span>Stats</span>
+          </button>
+          <button class="nav-item" data-view="rss">
+            <svg class="icon"><use href="#i-rss"></use></svg><span>RSS</span>
+          </button>
+          <button class="nav-item" data-view="settings">
+            <svg class="icon"><use href="#i-settings"></use></svg><span>Indstillinger</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="sidebar-status">
+            <span class="pulse-dot"></span>
+            <div>
+              <strong>Serveren kører</strong>
+              <span id="sidebar-uptime">–</span>
+            </div>
+          </div>
+          <div class="user-chip">
+            <span id="user-avatar" class="avatar">N</span>
+            <div class="user-meta">
+              <strong id="user-name">–</strong>
+              <span id="user-role">–</span>
+            </div>
+            <button id="logout-btn" class="icon-btn" title="Log ud" aria-label="Log ud">
+              <svg class="icon"><use href="#i-logout"></use></svg>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="mobile-brand">
+            <span class="brand-mark">N</span>
+          </div>
+          <label class="search">
+            <svg class="icon"><use href="#i-search"></use></svg>
+            <input id="search-input" type="search" placeholder="Søg i torrents…" autocomplete="off" />
+            <kbd>/</kbd>
+          </label>
+          <div class="topbar-actions">
+            <div class="mini-stat" title="Samlet downloadhastighed">
+              <svg class="icon icon-down"><use href="#i-arrow-down"></use></svg>
+              <span id="top-down">0 B/s</span>
+            </div>
+            <div class="mini-stat" title="Samlet uploadhastighed">
+              <svg class="icon icon-up"><use href="#i-arrow-up"></use></svg>
+              <span id="top-up">0 B/s</span>
+            </div>
+            <button id="port-status" class="port-status unknown" type="button" title="Tjekker torrent-porten…">
+              <span class="port-dot" aria-hidden="true"></span>
+              <span id="port-status-text">Port ukendt</span>
+            </button>
+            <button id="refresh-btn" class="icon-btn" title="Opdatér" aria-label="Opdatér">
+              <svg class="icon"><use href="#i-refresh"></use></svg>
+            </button>
+            <button id="add-btn" class="btn btn-primary btn-compact">
+              <svg class="icon"><use href="#i-plus"></use></svg>
+              <span>Tilføj</span>
+            </button>
+          </div>
+        </header>
+
+        <main class="content">
+          <section class="stat-grid" aria-label="Serverstatistik">
+            <article class="stat-card">
+              <div class="stat-icon down"><svg class="icon"><use href="#i-arrow-down"></use></svg></div>
+              <div><span class="stat-label">Download</span><strong id="stat-down">0 B/s</strong></div>
+              <span id="stat-down-sub" class="stat-sub">–</span>
+            </article>
+            <article class="stat-card">
+              <div class="stat-icon up"><svg class="icon"><use href="#i-arrow-up"></use></svg></div>
+              <div><span class="stat-label">Upload</span><strong id="stat-up">0 B/s</strong></div>
+              <span id="stat-up-sub" class="stat-sub">–</span>
+            </article>
+            <article class="stat-card">
+              <div class="stat-icon neutral"><svg class="icon"><use href="#i-activity"></use></svg></div>
+              <div><span class="stat-label">Aktive</span><strong id="stat-active">0</strong></div>
+              <span id="stat-active-sub" class="stat-sub">–</span>
+            </article>
+            <article class="stat-card">
+              <div class="stat-icon lime"><svg class="icon"><use href="#i-database"></use></svg></div>
+              <div><span class="stat-label">Hentet</span><strong id="stat-downloaded">0 B</strong></div>
+              <span id="stat-downloaded-sub" class="stat-sub">–</span>
+            </article>
+          </section>
+
+          <section id="torrent-section" class="panel-section">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">OVERSIGT</p>
+                <h2 id="section-title">Alle torrents</h2>
+              </div>
+              <div class="section-tools">
+                <span id="torrent-count" class="count-pill">0</span>
+                <button id="select-mode-btn" class="btn btn-ghost btn-compact" hidden>
+                  <svg class="icon"><use href="#i-check-square"></use></svg><span>Vælg</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="mobile-labels" class="mobile-labels" hidden></div>
+
+            <div id="torrent-empty" class="empty-state" hidden>
+              <div class="empty-art"><svg class="icon"><use href="#i-download"></use></svg></div>
+              <h3>Ingen torrents endnu</h3>
+              <p>Tilføj et magnet-link eller en .torrent-fil for at komme i gang.</p>
+              <button class="btn btn-primary" data-action="open-add">
+                <svg class="icon"><use href="#i-plus"></use></svg><span>Tilføj din første torrent</span>
+              </button>
+            </div>
+
+            <div id="torrent-table" class="torrent-table" hidden>
+              <div class="torrent-head">
+                <span>Navn</span>
+                <span>Status</span>
+                <span>Størrelse</span>
+                <span>Fremskridt</span>
+                <span>Hastighed</span>
+                <span class="align-right">Handling</span>
+              </div>
+              <div id="torrent-rows" class="torrent-rows"></div>
+            </div>
+          </section>
+
+          <section id="library-section" class="panel-section" hidden>
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">ANDROID TV</p>
+                <h2>TV-bibliotek</h2>
+              </div>
+              <div class="section-tools">
+                <span id="library-count" class="count-pill">0</span>
+              </div>
+            </div>
+            <div id="library-empty" class="empty-state" hidden>
+              <div class="empty-art"><svg class="icon"><use href="#i-tv"></use></svg></div>
+              <h3>Biblioteket er tomt</h3>
+              <p>Video- og lydfiler fra dine torrents vises her, klar til afspilning.</p>
+            </div>
+            <div id="library-grid" class="library-grid"></div>
+          </section>
+
+          <section id="stats-section" class="panel-section" hidden>
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">STATISTIK</p>
+                <h2>Stats</h2>
+              </div>
+              <div class="section-tools">
+                <span id="stats-month-badge" class="count-pill">–</span>
+              </div>
+            </div>
+
+            <div class="stats-summary">
+              <article class="stats-metric">
+                <span>Denne måned · downloadet</span>
+                <strong id="stats-month-download">0 B</strong>
+                <small id="stats-month-download-sub">–</small>
+              </article>
+              <article class="stats-metric">
+                <span>Denne måned · uploadet</span>
+                <strong id="stats-month-upload">0 B</strong>
+                <small id="stats-month-upload-sub">–</small>
+              </article>
+              <article class="stats-metric">
+                <span>Ratio denne måned</span>
+                <strong id="stats-month-ratio">0.00</strong>
+                <small id="stats-month-ratio-sub">–</small>
+              </article>
+              <article class="stats-metric">
+                <span>Seedende torrents</span>
+                <strong id="stats-seeding">0</strong>
+                <small id="stats-seeding-sub">–</small>
+              </article>
+            </div>
+
+            <div class="stats-panels">
+              <article class="stats-panel">
+                <div class="stats-panel-head">
+                  <h3>Månedlig overførsel</h3>
+                  <span>Download / upload</span>
+                </div>
+                <div id="stats-months" class="stats-months"></div>
+              </article>
+              <article class="stats-panel">
+                <div class="stats-panel-head">
+                  <h3>Mest uploadet denne måned</h3>
+                  <span>Top torrents</span>
+                </div>
+                <div id="stats-top" class="stats-top"></div>
+              </article>
+            </div>
+          </section>
+
+          <section id="rss-section" class="panel-section" hidden>
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">AUTOMATISK</p>
+                <h2>RSS</h2>
+              </div>
+              <div class="section-tools">
+                <button id="rss-add-btn" class="btn btn-primary btn-compact" type="button">
+                  <svg class="icon"><use href="#i-plus"></use></svg><span>Tilføj feed</span>
+                </button>
+              </div>
+            </div>
+            <div id="rss-empty" class="empty-state" hidden>
+              <div class="empty-art"><svg class="icon"><use href="#i-rss"></use></svg></div>
+              <h3>Ingen RSS-feeds endnu</h3>
+              <p>Tilføj et RSS-feed for automatisk at downloade matching torrents.</p>
+              <button class="btn btn-primary" type="button" data-action="rss-add">
+                <svg class="icon"><use href="#i-plus"></use></svg><span>Tilføj dit første feed</span>
+              </button>
+            </div>
+            <div id="rss-list" class="rss-list"></div>
+          </section>
+
+          <section id="settings-section" class="panel-section" hidden>
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">KONTO & SERVER</p>
+                <h2>Indstillinger</h2>
+              </div>
+            </div>
+
+            <div class="settings-grid">
+              <article class="settings-card">
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-user"></use></svg>
+                  <h3>Din konto</h3>
+                </div>
+                <dl class="detail-list">
+                  <div><dt>Brugernavn</dt><dd id="settings-username">–</dd></div>
+                  <div><dt>Rolle</dt><dd id="settings-role">–</dd></div>
+                  <div><dt>Oprettet</dt><dd id="settings-created">–</dd></div>
+                </dl>
+                <button id="settings-logout-btn" class="btn btn-ghost btn-compact settings-logout" type="button">
+                  <svg class="icon"><use href="#i-logout"></use></svg><span>Log ud</span>
+                </button>
+              </article>
+
+              <article class="settings-card">
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-server"></use></svg>
+                  <h3>Server</h3>
+                </div>
+                <dl class="detail-list">
+                  <div><dt>Version</dt><dd id="settings-version">–</dd></div>
+                  <div><dt>Oppetid</dt><dd id="settings-uptime">–</dd></div>
+                  <div><dt>Torrent-porte</dt><dd id="settings-ports">–</dd></div>
+                  <div id="settings-paths-row" hidden><dt>Downloadmappe</dt><dd id="settings-download-dir">–</dd></div>
+                </dl>
+              </article>
+
+              <article class="settings-card" id="appearance-card">
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-globe"></use></svg>
+                  <h3>Udseende & sprog</h3>
+                </div>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Tema</span>
+                    <select id="theme-select">
+                      <option value="system">System</option>
+                      <option value="dark">Mørk</option>
+                      <option value="light">Lys</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Sprog</span>
+                    <select id="language-select">
+                      <option value="da">Dansk</option>
+                      <option value="en">English</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="toggle-row" for="tv-library-toggle">
+                  <input id="tv-library-toggle" type="checkbox" />
+                  <span class="toggle"></span>
+                  <span>Vis TV-bibliotek</span>
+                </label>
+                <label class="toggle-row" for="labels-visible-toggle">
+                  <input id="labels-visible-toggle" type="checkbox" />
+                  <span class="toggle"></span>
+                  <span>Vis labels i sidepanelet</span>
+                </label>
+                <p class="form-hint">Tema, sprog, TV-bibliotek og labels gemmes i denne browser.</p>
+              </article>
+
+              <article class="settings-card" id="network-card" hidden>
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-globe"></use></svg>
+                  <h3>Port & netværk</h3>
+                  <span id="network-badge" class="network-pill unknown">Ukendt</span>
+                </div>
+                <dl class="detail-list">
+                  <div><dt>Lokal port</dt><dd id="network-local-port">–</dd></div>
+                  <div><dt>Portinterval</dt><dd id="network-range">–</dd></div>
+                  <div><dt>Offentlig IP</dt><dd id="network-auto-ip">–</dd></div>
+                </dl>
+                <form id="network-form" class="stack compact">
+                  <div class="field-row">
+                    <label class="field"><span>Ekstern IP</span><input id="network-external-ip" type="text" inputmode="decimal" placeholder="Findes automatisk" autocomplete="off" /></label>
+                    <label class="field"><span>Ekstern port</span><input id="network-external-port" type="number" min="1" max="65535" placeholder="Fx 50000" /></label>
+                  </div>
+                  <p id="network-message" class="network-message">Tjekker porten…</p>
+                  <div class="network-actions">
+                    <button id="network-test" class="btn btn-ghost btn-compact" type="button">
+                      <svg class="icon"><use href="#i-refresh"></use></svg><span>Test port</span>
+                    </button>
+                    <button class="btn btn-primary btn-compact" type="submit">Gem</button>
+                  </div>
+                </form>
+              </article>
+
+              <article class="settings-card" id="speed-card" hidden>
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-bolt"></use></svg>
+                  <h3>Hastighed</h3>
+                </div>
+                <div class="speed-limit-row">
+                  <div class="speed-limit-copy">
+                    <strong>Begræns torrent-downloads</strong>
+                    <small>Samlet for alle torrents, adskilt fra HTTP-downloads</small>
+                  </div>
+                  <label class="speed-toggle">
+                    <input id="speed-download-enabled" type="checkbox" />
+                    <span class="toggle"></span>
+                  </label>
+                </div>
+                <div class="speed-limit-row speed-value-row" id="speed-download-row">
+                  <span>Maksimal hastighed</span>
+                  <div class="unit-input">
+                    <input id="speed-download-kbps" type="number" min="1" max="4194303" step="1" inputmode="numeric" />
+                    <span>KB/s</span>
+                  </div>
+                </div>
+                <div class="speed-limit-row">
+                  <div class="speed-limit-copy">
+                    <strong>Begræns torrent-uploads</strong>
+                    <small>Samlet for alle torrents</small>
+                  </div>
+                  <label class="speed-toggle">
+                    <input id="speed-upload-enabled" type="checkbox" />
+                    <span class="toggle"></span>
+                  </label>
+                </div>
+                <div class="speed-limit-row speed-value-row" id="speed-upload-row">
+                  <span>Maksimal hastighed</span>
+                  <div class="unit-input">
+                    <input id="speed-upload-kbps" type="number" min="1" max="4194303" step="1" inputmode="numeric" />
+                    <span>KB/s</span>
+                  </div>
+                </div>
+                <p id="speed-error" class="form-error" hidden></p>
+                <div class="network-actions">
+                  <span id="speed-status" class="form-hint"></span>
+                  <button id="speed-save" class="btn btn-primary btn-compact" type="button">Gem hastighed</button>
+                </div>
+              </article>
+
+              <article class="settings-card" id="seeding-card" hidden>
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-clock"></use></svg>
+                  <h3>Seeding</h3>
+                </div>
+                <div class="speed-limit-row">
+                  <div class="speed-limit-copy">
+                    <strong>Behold seeding efter torrenten er færdig</strong>
+                    <small>Del med andre peers indtil en grænse nedenfor</small>
+                  </div>
+                  <label class="speed-toggle">
+                    <input id="seeding-keep" type="checkbox" />
+                    <span class="toggle"></span>
+                  </label>
+                </div>
+                <div class="speed-limit-row speed-value-row" id="seeding-ratio-row">
+                  <div class="speed-limit-copy">
+                    <strong>Stop ved ratio</strong>
+                    <small>Uploaded divideret med downloaded; 0 = ingen grænse</small>
+                  </div>
+                  <div class="unit-input">
+                    <input id="seeding-ratio" type="number" min="0" max="1000" step="0.1" inputmode="decimal" />
+                  </div>
+                </div>
+                <div class="speed-limit-row speed-value-row" id="seeding-time-row">
+                  <div class="speed-limit-copy">
+                    <strong>Stop efter</strong>
+                    <small>0 = ingen grænse</small>
+                  </div>
+                  <div class="unit-input">
+                    <input id="seeding-minutes" type="number" min="0" max="525600" step="1" inputmode="numeric" />
+                    <span>minutter</span>
+                  </div>
+                </div>
+                <p id="seeding-error" class="form-error" hidden></p>
+                <div class="network-actions">
+                  <span id="seeding-status" class="form-hint"></span>
+                  <button id="seeding-save" class="btn btn-primary btn-compact" type="button">Gem seeding</button>
+                </div>
+              </article>
+
+              <article class="settings-card" id="dht-card" hidden>
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-globe"></use></svg>
+                  <h3>DHT</h3>
+                </div>
+                <div class="speed-limit-row">
+                  <div class="speed-limit-copy">
+                    <strong>Find peers via DHT</strong>
+                    <small>Bruges til magnet-links uden trackere. Private torrents bruger den ikke.</small>
+                  </div>
+                  <label class="speed-toggle">
+                    <input id="dht-enabled" type="checkbox" />
+                    <span class="toggle"></span>
+                  </label>
+                </div>
+                <p id="dht-note" class="form-hint">Ændringen træder i kraft efter genstart af serveren.</p>
+                <p id="dht-error" class="form-error" hidden></p>
+                <div class="network-actions">
+                  <button id="dht-save" class="btn btn-primary btn-compact" type="button">Gem DHT</button>
+                </div>
+              </article>
+
+              <article class="settings-card" id="password-card">
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-lock"></use></svg>
+                  <h3>Skift adgangskode</h3>
+                </div>
+                <form id="password-form" class="stack compact">
+                  <label class="field"><span>Nuværende adgangskode</span><input id="current-password" type="password" autocomplete="current-password" required /></label>
+                  <label class="field"><span>Ny adgangskode</span><input id="new-password" type="password" autocomplete="new-password" minlength="12" required /></label>
+                  <p id="password-error" class="form-error" hidden></p>
+                  <button class="btn btn-primary" type="submit">Gem ny adgangskode</button>
+                </form>
+              </article>
+
+              <article class="settings-card" id="totp-card">
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-lock"></use></svg>
+                  <h3>To-faktor-godkendelse</h3>
+                </div>
+                <p id="totp-status" class="form-hint">2FA er slået fra.</p>
+                <p class="form-hint">Ved login udefra kræves en kode fra Google Authenticator. Lokale login på serverens netværk springes over.</p>
+                <div class="network-actions">
+                  <button id="totp-enable-btn" class="btn btn-primary btn-compact" type="button">Aktivér 2FA</button>
+                  <button id="totp-disable-btn" class="btn btn-ghost btn-compact" type="button" hidden>Slå 2FA fra</button>
+                </div>
+              </article>
+
+              <article class="settings-card" id="sessions-card" hidden>
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-devices"></use></svg>
+                  <h3>Aktive sessioner</h3>
+                  <span id="sessions-count" class="badge">0</span>
+                </div>
+                <p class="form-hint">Enheder og browsere, der er logget ind på serveren. Kun administratorer kan tilbagekalde sessioner.</p>
+                <div id="sessions-list" class="sessions-list"></div>
+                <button id="sessions-refresh" class="btn btn-ghost btn-compact sessions-refresh" type="button">
+                  <svg class="icon"><use href="#i-refresh"></use></svg><span>Opdatér</span>
+                </button>
+              </article>
+
+              <article class="settings-card" id="users-card" hidden>
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-users"></use></svg>
+                  <h3>Brugere</h3>
+                  <span class="badge">Admin</span>
+                </div>
+                <div id="users-list" class="users-list"></div>
+                <form id="create-user-form" class="stack compact">
+                  <div class="field-row">
+                    <label class="field"><span>Brugernavn</span><input id="new-user-username" type="text" minlength="3" maxlength="32" required /></label>
+                    <label class="field"><span>Rolle</span><select id="new-user-role"><option value="viewer">Seer</option><option value="admin">Administrator</option></select></label>
+                  </div>
+                  <label class="field"><span>Adgangskode</span><input id="new-user-password" type="password" minlength="12" autocomplete="new-password" required /></label>
+                  <p id="user-error" class="form-error" hidden></p>
+                  <button class="btn btn-ghost" type="submit">Opret bruger</button>
+                </form>
+              </article>
+            </div>
+          </section>
+        </main>
+
+        <footer class="footer">
+          <span>NordTorrent <span id="footer-version"></span></span>
+          <span class="footer-sep"></span>
+          <span>Kører lokalt på din server</span>
+        </footer>
+      </div>
+    </div>
+
+    <div id="add-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="add-title" hidden>
+      <div class="modal-backdrop" data-close="add-modal"></div>
+      <div class="modal-card">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" id="add-eyebrow">NY DOWNLOAD</p>
+            <h2 id="add-title">Tilføj torrent</h2>
+          </div>
+          <button class="icon-btn" data-close="add-modal" aria-label="Luk">
+            <svg class="icon"><use href="#i-x"></use></svg>
+          </button>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <button class="tab is-active" data-add-tab="magnet" role="tab">Magnet-link</button>
+          <button class="tab" data-add-tab="file" role="tab">.torrent-fil</button>
+        </div>
+
+        <div class="field add-folder folder-picker">
+          <span>Downloadmappe</span>
+          <input id="download-folder" type="hidden" value="" />
+          <div class="folder-picker-row">
+            <input id="download-folder-display" class="folder-display" type="text" readonly value="/downloads/" aria-label="Valgt downloadmappe" />
+            <button id="download-folder-browse" class="btn btn-ghost btn-compact" type="button">
+              <svg class="icon"><use href="#i-folder"></use></svg>
+              <span>Gennemse</span>
+            </button>
+          </div>
+          <small id="download-folder-help">Vælg en mappe under downloadroden.</small>
+
+          <div id="folder-browser" class="folder-browser" hidden>
+            <div class="folder-browser-head">
+              <div class="folder-search">
+                <svg class="icon"><use href="#i-search"></use></svg>
+                <input id="folder-search" type="search" placeholder="Søg i denne mappe…" autocomplete="off" />
+              </div>
+              <button id="folder-browser-close" class="icon-btn" type="button" aria-label="Luk mappe-browser">
+                <svg class="icon"><use href="#i-x"></use></svg>
+              </button>
+            </div>
+            <div id="folder-breadcrumbs" class="folder-breadcrumbs"></div>
+            <div id="folder-entries" class="folder-entries"></div>
+            <div class="folder-browser-foot">
+              <span id="folder-current" class="folder-current">/downloads/</span>
+              <button id="folder-select" class="btn btn-primary btn-compact" type="button">Vælg denne mappe</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field add-label folder-picker">
+          <span>Label</span>
+          <input id="add-label" type="hidden" value="" />
+          <button id="add-label-display" class="label-display" type="button" aria-haspopup="listbox">
+            <span id="add-label-text">Ingen label</span>
+            <svg class="icon"><use href="#i-arrow-down"></use></svg>
+          </button>
+          <div id="label-picker" class="label-picker" role="listbox" hidden>
+            <div id="label-picker-options" class="label-picker-options"></div>
+            <button id="label-picker-new" class="label-picker-new" type="button">+ Ny label</button>
+          </div>
+        </div>
+
+        <form id="magnet-form" class="stack add-pane">
+          <label class="field">
+            <span>Magnet-link eller info-hash</span>
+            <textarea id="magnet-input" rows="4" placeholder="magnet:?xt=urn:btih:…" spellcheck="false" required></textarea>
+            <small>Torrenten hentes direkte af serveren. Intet sendes til tredjepart.</small>
+          </label>
+          <label class="toggle-row">
+            <input id="magnet-paused" type="checkbox" />
+            <span class="toggle"></span>
+            <span>Tilføj i pauset tilstand</span>
+          </label>
+          <p id="magnet-error" class="form-error" hidden></p>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" data-close="add-modal">Annuller</button>
+            <button id="magnet-submit" type="submit" class="btn btn-primary">
+              <svg class="icon"><use href="#i-plus"></use></svg><span>Tilføj torrent</span>
+            </button>
+          </div>
+        </form>
+
+        <form id="file-form" class="stack add-pane" hidden>
+          <label class="dropzone" id="dropzone" for="torrent-file">
+            <input id="torrent-file" type="file" accept=".torrent,application/x-bittorrent" hidden />
+            <svg class="icon"><use href="#i-upload"></use></svg>
+            <strong id="dropzone-title">Vælg eller slip en .torrent-fil</strong>
+            <span id="dropzone-sub">Maks. 20 MB · filen bliver på din server</span>
+          </label>
+          <label class="toggle-row">
+            <input id="file-paused" type="checkbox" />
+            <span class="toggle"></span>
+            <span>Tilføj i pauset tilstand</span>
+          </label>
+          <p id="file-error" class="form-error" hidden></p>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" data-close="add-modal">Annuller</button>
+            <button id="file-submit" type="submit" class="btn btn-primary">
+              <svg class="icon"><use href="#i-upload"></use></svg><span>Upload og tilføj</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="detail-overlay" class="drawer-overlay" hidden>
+      <div class="drawer-backdrop" data-close="detail-overlay"></div>
+      <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+        <div class="drawer-head">
+          <div>
+            <p class="eyebrow" id="detail-eyebrow">TORRENT</p>
+            <h2 id="detail-title">–</h2>
+          </div>
+          <button class="icon-btn" data-close="detail-overlay" aria-label="Luk">
+            <svg class="icon"><use href="#i-x"></use></svg>
+          </button>
+        </div>
+        <div id="detail-body" class="drawer-body"></div>
+      </aside>
+    </div>
+
+    <div id="totp-setup-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="totp-setup-title" hidden>
+      <div class="modal-backdrop" data-close="totp-setup-modal"></div>
+      <div class="modal-card modal-small stack">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">2FA</p>
+            <h2 id="totp-setup-title">Aktivér Google Authenticator</h2>
+          </div>
+          <button class="icon-btn" type="button" data-close="totp-setup-modal" aria-label="Luk">
+            <svg class="icon"><use href="#i-x"></use></svg>
+          </button>
+        </div>
+        <p class="muted">Scan QR-koden med Google Authenticator, eller indtast den hemmelige nøgle nedenfor. Indtast derefter den viste 6-cifrede kode.</p>
+        <div class="totp-qr-wrap">
+          <img id="totp-qr" class="totp-qr" alt="QR-kode til Google Authenticator" hidden />
+        </div>
+        <label class="field"><span>Hemmelig nøgle</span><input id="totp-secret" type="text" readonly /></label>
+        <p id="totp-uri" class="form-hint"></p>
+        <button id="totp-copy-secret" class="btn btn-ghost btn-compact" type="button">Kopiér nøgle</button>
+        <label class="field"><span>6-cifret kode</span><input id="totp-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" /></label>
+        <p id="totp-setup-error" class="form-error" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close="totp-setup-modal">Annuller</button>
+          <button id="totp-confirm" class="btn btn-primary" type="button">Bekræft og aktivér</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="totp-disable-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="totp-disable-title" hidden>
+      <div class="modal-backdrop" data-close="totp-disable-modal"></div>
+      <div class="modal-card modal-small stack">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">2FA</p>
+            <h2 id="totp-disable-title">Slå 2FA fra?</h2>
+          </div>
+          <button class="icon-btn" type="button" data-close="totp-disable-modal" aria-label="Luk">
+            <svg class="icon"><use href="#i-x"></use></svg>
+          </button>
+        </div>
+        <p class="muted">Bekræft med din adgangskode for at slå to-faktor-godkendelse fra.</p>
+        <label class="field"><span>Adgangskode</span><input id="totp-disable-password" type="password" autocomplete="current-password" /></label>
+        <p id="totp-disable-error" class="form-error" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close="totp-disable-modal">Annuller</button>
+          <button id="totp-disable-confirm" class="btn btn-danger" type="button">Slå 2FA fra</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="label-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="label-title" hidden>
+      <div class="modal-backdrop" data-close="label-modal"></div>
+      <form id="label-form" class="modal-card modal-small stack">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">LABEL</p>
+            <h2 id="label-title">Ny label</h2>
+          </div>
+          <button class="icon-btn" type="button" data-close="label-modal" aria-label="Luk">
+            <svg class="icon"><use href="#i-x"></use></svg>
+          </button>
+        </div>
+        <label class="field"><span>Navn</span><input id="label-name" type="text" maxlength="40" required /></label>
+        <p id="label-error" class="form-error" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close="label-modal">Annuller</button>
+          <button class="btn btn-primary" type="submit">Opret label</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="rss-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="rss-title" hidden>
+      <div class="modal-backdrop" data-close="rss-modal"></div>
+      <form id="rss-form" class="modal-card stack">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">RSS</p>
+            <h2 id="rss-title">Tilføj RSS-feed</h2>
+          </div>
+          <button class="icon-btn" type="button" data-close="rss-modal" aria-label="Luk">
+            <svg class="icon"><use href="#i-x"></use></svg>
+          </button>
+        </div>
+        <input id="rss-edit-id" type="hidden" />
+        <div class="field-row">
+          <label class="field"><span>Navn</span><input id="rss-name" type="text" maxlength="120" placeholder="Fx mit feed" /></label>
+          <div class="field folder-picker">
+            <span>Downloadmappe</span>
+            <input id="rss-folder" type="hidden" value="" />
+            <div class="folder-picker-row">
+              <input id="rss-folder-display" class="folder-display" type="text" readonly value="/downloads/" aria-label="Valgt downloadmappe" />
+              <button id="rss-folder-browse" class="btn btn-ghost btn-compact" type="button">
+                <svg class="icon"><use href="#i-folder"></use></svg><span>Gennemse</span>
+              </button>
+            </div>
+            <small id="rss-folder-help">Vælg en mappe under downloadroden.</small>
+            <div id="rss-folder-browser" class="folder-browser" hidden>
+              <div class="folder-browser-head">
+                <div class="folder-search">
+                  <svg class="icon"><use href="#i-search"></use></svg>
+                  <input id="rss-folder-search" type="search" placeholder="Søg i denne mappe…" autocomplete="off" />
+                </div>
+                <button id="rss-folder-browser-close" class="icon-btn" type="button" aria-label="Luk mappe-browser">
+                  <svg class="icon"><use href="#i-x"></use></svg>
+                </button>
+              </div>
+              <div id="rss-folder-breadcrumbs" class="folder-breadcrumbs"></div>
+              <div id="rss-folder-entries" class="folder-entries"></div>
+              <div class="folder-browser-foot">
+                <span id="rss-folder-current" class="folder-current">/downloads/</span>
+                <button id="rss-folder-select" class="btn btn-primary btn-compact" type="button">Vælg denne mappe</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <label class="field"><span>RSS-adresse</span><input id="rss-url" type="url" required placeholder="https://…/rss" /></label>
+        <label class="field"><span>Skal indeholde</span><input id="rss-include" type="text" placeholder="Fx navn, sæson (kommasepareret)" /></label>
+        <label class="field"><span>Må ikke indeholde</span><input id="rss-exclude" type="text" placeholder="Fx cam, sample (kommasepareret)" /></label>
+        <div class="rss-toggles">
+          <label class="toggle-row"><input id="rss-enabled" type="checkbox" /><span class="toggle"></span><span>Aktiv</span></label>
+          <label class="toggle-row"><input id="rss-auto" type="checkbox" /><span class="toggle"></span><span>Automatisk download</span></label>
+          <label class="toggle-row"><input id="rss-paused" type="checkbox" /><span class="toggle"></span><span>Tilføj pauset</span></label>
+        </div>
+        <p id="rss-error" class="form-error" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close="rss-modal">Annuller</button>
+          <button id="rss-submit" type="submit" class="btn btn-primary">Gem feed</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="confirm-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title" hidden>
+      <div class="modal-backdrop" data-close="confirm-modal"></div>
+      <div class="modal-card modal-small">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">BEKRÆFT</p>
+            <h2 id="confirm-title">Er du sikker?</h2>
+          </div>
+          <button class="icon-btn" data-close="confirm-modal" aria-label="Luk">
+            <svg class="icon"><use href="#i-x"></use></svg>
+          </button>
+        </div>
+        <p id="confirm-text" class="muted"></p>
+        <label class="toggle-row danger-toggle" id="confirm-files-row" hidden>
+          <input id="confirm-delete-files" type="checkbox" />
+          <span class="toggle"></span>
+          <span>Slet også de downloadede filer fra disken</span>
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close="confirm-modal">Annuller</button>
+          <button id="confirm-ok" type="button" class="btn btn-danger">Bekræft</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="player-modal" class="player-modal" role="dialog" aria-modal="true" aria-labelledby="player-title" hidden>
+      <div class="player-shell">
+        <div class="player-head">
+          <div>
+            <p class="eyebrow">AFSPILLER</p>
+            <h2 id="player-title">–</h2>
+          </div>
+          <div class="player-head-actions">
+            <a id="player-download" class="btn btn-ghost btn-compact" href="#" download>
+              <svg class="icon"><use href="#i-download"></use></svg><span>Download</span>
+            </a>
+            <button class="icon-btn" id="player-close" aria-label="Luk afspiller">
+              <svg class="icon"><use href="#i-x"></use></svg>
+            </button>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <video id="player-video" controls playsinline preload="metadata"></video>
+          <div id="player-message" class="player-message" hidden>
+            <svg class="icon"><use href="#i-alert"></use></svg>
+            <p>Browseren kunne ikke afspille filen. Download den i stedet, eller brug Android TV-appen.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
+
+    <svg xmlns="http://www.w3.org/2000/svg" class="svg-sprite" aria-hidden="true">
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 21V9"></path><path d="m7 14 5-5 5 5"></path><path d="M5 3h14"></path></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></symbol>
+      <symbol id="i-check-square" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="m8 12 3 3 5-6"></path></symbol>
+      <symbol id="i-tv" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="13" rx="3"></rect><path d="m8 2 4 4 4-4"></path><path d="M7 22h10"></path></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1 1.55V21h-4v-.08A1.7 1.7 0 0 0 9 19.37a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.63 15a1.7 1.7 0 0 0-1.55-1H3v-4h.08A1.7 1.7 0 0 0 4.63 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.63a1.7 1.7 0 0 0 1-1.55V3h4v.08a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.37 9a1.7 1.7 0 0 0 1.55 1H21v4h-.08a1.7 1.7 0 0 0-1.52 1Z"></path></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"></path><path d="M18 14.5a6.5 6.5 0 0 1 3.5 5.5"></path></symbol>
+      <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="7" rx="2"></rect><rect x="3" y="14" width="18" height="7" rx="2"></rect><path d="M7 6.5h.01M7 17.5h.01"></path></symbol>
+      <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9S14.4 18.5 12 21M12 3c-2.4 2.5-3.6 5.5-3.6 9S9.6 18.5 12 21"></path></symbol>
+      <symbol id="i-devices" viewBox="0 0 24 24"><rect x="3" y="4" width="13" height="10" rx="2"></rect><path d="M7 18h5M9.5 14v4"></path><rect x="17" y="8" width="4" height="12" rx="1"></rect></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4 8.5 8.5 0 1 0 20 15.2Z"></path></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="3"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path><path d="M12 15v2"></path></symbol>
+      <symbol id="i-logout" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"></path><path d="M10 8 6 12l4 4"></path><path d="M6 12h10"></path></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5"></path><path d="M19.4 16a8 8 0 1 1-.9-8.3L20 12"></path></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"></path></symbol>
+      <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></symbol>
+      <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 4v16"></path><path d="m6 14 6 6 6-6"></path></symbol>
+      <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V4"></path><path d="m6 10 6-6 6 6"></path></symbol>
+      <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"></path></symbol>
+      <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path><path d="M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"></path></symbol>
+      <symbol id="i-bolt" viewBox="0 0 24 24"><path d="m13 2-8 12h7l-1 8 8-12h-7l1-8Z"></path></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"></path></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"></path></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="m6 7 1 14h10l1-14"></path><path d="M10 11v6M14 11v6"></path></symbol>
+      <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></symbol>
+      <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M3 9h18M3 15h18M8 4v16M16 4v16"></path></symbol>
+      <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 2h8l4 4v16H6V2Z"></path><path d="M14 2v5h5"></path></symbol>
+      <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"></path></symbol>
+      <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"></path><path d="M5 10v10h14V10"></path></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 21h20L12 3Z"></path><path d="M12 9v5M12 18h.01"></path></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></symbol>
+      <symbol id="i-rss" viewBox="0 0 24 24"><circle cx="6" cy="18" r="1.5"></circle><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path></symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></symbol>
+      <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18"></path><path d="M10.6 6.2A10.6 10.6 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3.2 3.9M6.6 6.6C3.8 8.4 2 12 2 12s3.5 6 10 6c1.5 0 2.9-.3 4.1-.9"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path></symbol>
+      <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6"></path><path d="m20 4-9 9"></path><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"></path></symbol>
+    </svg>
+
+    <script src="/assets/i18n.js"></script>
+    <script type="module" src="/assets/app.js"></script>
+  </body>
+</html>
