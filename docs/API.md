@@ -243,17 +243,26 @@ Used by the folder picker in the web panel. Returns one level below the download
 ```json
 {
   "labels": ["Movies", "Series"],
-  "assignments": { "info-hash": "Movies" }
+  "assignments": { "info-hash": "Movies" },
+  "colors": { "Movies": "#fbbf24" }
 }
 ```
 
 #### `POST /labels` (admin)
 
 ```json
-{ "name": "Movies" }
+{ "name": "Movies", "color": "#fbbf24" }
 ```
 
-Names are unique case-insensitively and limited to 40 characters.
+Names are unique case-insensitively and limited to 40 characters. `color` is optional and accepts `#rgb` or `#rrggbb` (stored lower case). Labels without a colour are absent from `colors` and keep the neutral default styling.
+
+#### `PUT /labels/{name}` (admin)
+
+```json
+{ "color": "#7dd3fc" }
+```
+
+Changes the colour of an existing label. Send `{"color": null}` to remove the colour again.
 
 #### `DELETE /labels/{name}` (admin)
 

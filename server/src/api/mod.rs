@@ -63,6 +63,7 @@ pub const FEATURES: &[&str] = &[
     "rss",
     "2fa",
     "labels",
+    "label-colors",
     "totp-proxy-detect",
 ];
 
@@ -123,7 +124,10 @@ pub fn router(state: AppState) -> Router {
         .route("/api/v1/torrents/{id}/files", post(update_files))
         .route("/api/v1/torrents/{id}/label", put(set_torrent_label))
         .route("/api/v1/labels", get(list_labels).post(create_label))
-        .route("/api/v1/labels/{name}", delete(delete_label))
+        .route(
+            "/api/v1/labels/{name}",
+            delete(delete_label).put(update_label),
+        )
         .route(
             "/api/v1/torrents/{id}/files/{file_id}/stream",
             get(stream::stream_file),
@@ -500,6 +504,8 @@ async fn list_labels(
 #[derive(Deserialize)]
 struct CreateLabelRequest {
     name: String,
+    #[serde(default)]
+    color: Option<String>,
 }
 
 async fn create_label(
@@ -510,7 +516,27 @@ async fn create_label(
     user.require_admin()?;
     state
         .labels
-        .create(&request.name)
+        .create(&request.name, request.color.as_deref())
+        .map(Json)
+        .map_err(|err| AppError::bad_request(err.to_string()))
+}
+
+#[derive(Deserialize)]
+struct SetLabelColorRequest {
+    #[serde(default)]
+    color: Option<String>,
+}
+
+async fn update_label(
+    State(state): State<AppState>,
+    user: AuthUser,
+    axum::extract::Path(name): axum::extract::Path<String>,
+    Json(request): Json<SetLabelColorRequest>,
+) -> Result<Json<LabelsView>, AppError> {
+    user.require_admin()?;
+    state
+        .labels
+        .set_color(&name, request.color.as_deref())
         .map(Json)
         .map_err(|err| AppError::bad_request(err.to_string()))
 }

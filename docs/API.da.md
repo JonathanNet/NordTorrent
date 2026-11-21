@@ -335,15 +335,26 @@ Bruges af webpanelets mappe-vælger. Returnerer ét niveau under downloadroden:
 ```json
 {
   "labels": ["Film", "Serier"],
-  "assignments": { "info-hash": "Film" }
+  "assignments": { "info-hash": "Film" },
+  "colors": { "Film": "#fbbf24" }
 }
 ```
 
 #### `POST /labels` (admin)
 
 ```json
-{ "name": "Film" }
+{ "name": "Film", "color": "#fbbf24" }
 ```
+
+`color` er valgfri og accepterer `#rgb` eller `#rrggbb` (gemmes med små bogstaver). Labels uden farve optræder ikke i `colors` og beholder den neutrale standardstil.
+
+#### `PUT /labels/{name}` (admin)
+
+```json
+{ "color": "#7dd3fc" }
+```
+
+Ændrer farven på en eksisterende label. Send `{"color": null}` for at fjerne farven igen.
 
 #### `DELETE /labels/{name}` (admin)
 

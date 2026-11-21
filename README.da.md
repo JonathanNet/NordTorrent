@@ -29,7 +29,7 @@ Inspirationen er rtorrent/rutorrent, men overfladen er gjort mere nutidig: mørk
 - **Torrentmotor**: `librqbit` med DHT, trackers, fastresume og session-persistens.
 - **Webpanel**: tilføj magnet-links eller `.torrent`-filer, søg, filtrér, pause/genoptag, vælg filer, slet med eller uden filer.
 - **Flere downloadmapper**: mounts under `/downloads` vises automatisk ved navn (fx `series2`, `gamle_serier`). Du kan gennemse og søge i undermapper som i rutorrent og vælge den endelige sti, når du tilføjer en torrent.
-- **Labels**: opret labels, tildel dem ved tilføjelse eller senere, og filtrér torrentlisten efter label – som labels i ruTorrent.
+- **Labels**: opret labels, giv dem en valgfri farve (eller behold den neutrale standard), tildel dem ved tilføjelse eller senere, og filtrér torrentlisten efter label – som labels i ruTorrent. Klik på en label-prik i sidepanelet for at ændre farven.
 - **Portstatus**: topbaren viser dit offentlige `IP:port` med grøn/rød/ukendt indikator som i rutorrent. Offentlig IP findes automatisk, og du kan sætte en anden ekstern port (fx routerens `50000 -> 42000`) under **Indstillinger → Port & netværk**.
 - **Tema og sprog**: vælg System, Mørk eller Lys samt Dansk eller English under **Indstillinger → Udseende & sprog**. Valget gemmes i browseren, og temaet kan også skiftes direkte på login-skærmen.
 - **Direkte links**: siderne har egne URL'er som `/settings`, `/library`, `/downloading`, `/completed`, `/rss` og `/stats`. Reload, back/forward og bogmærker bevarer den side, du står på.

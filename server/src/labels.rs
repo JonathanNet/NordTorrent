@@ -15,13 +15,30 @@ use crate::torrents::{TorrentDetailResponse, TorrentListResponse};
 pub struct LabelsView {
     pub labels: Vec<String>,
     pub assignments: HashMap<String, String>,
+    /// Optional `#rrggbb` colour per label. Labels without a colour are absent,
+    /// so the web panel keeps its neutral default styling for them.
+    pub colors: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct LabelEntry {
+    name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    color: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum LabelValue {
+    Entry(LabelEntry),
+    Name(String),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LabelsFile {
     version: u8,
-    #[serde(default)]
-    labels: Vec<String>,
+    #[serde(default, deserialize_with = "deserialize_labels")]
+    labels: Vec<LabelEntry>,
     #[serde(default)]
     assignments: HashMap<String, String>,
 }
@@ -29,11 +46,31 @@ struct LabelsFile {
 impl Default for LabelsFile {
     fn default() -> Self {
         Self {
-            version: 1,
+            version: 2,
             labels: Vec::new(),
             assignments: HashMap::new(),
         }
     }
+}
+
+/// Accepts both the old format (`["Movies"]`) and the current one
+/// (`[{"name": "Movies", "color": "#c6f45c"}]`) so existing data keeps working.
+fn deserialize_labels<'de, D>(deserializer: D) -> std::result::Result<Vec<LabelEntry>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let values = Vec::<LabelValue>::deserialize(deserializer)?;
+    Ok(values
+        .into_iter()
+        .map(|value| match value {
+            LabelValue::Entry(entry) => LabelEntry {
+                name: entry.name,
+                color: entry.color.and_then(|color| normalize_color(&color).ok()),
+            },
+            LabelValue::Name(name) => LabelEntry { name, color: None },
+        })
+        .filter(|entry| !entry.name.trim().is_empty())
+        .collect())
 }
 
 pub struct LabelStore {
@@ -52,45 +89,57 @@ impl LabelStore {
 
     pub fn view(&self) -> LabelsView {
         let state = self.state.lock().expect("label mutex poisoned");
-        LabelsView {
-            labels: state.labels.clone(),
-            assignments: state.assignments.clone(),
-        }
+        view_of(&state)
     }
 
-    pub fn create(&self, name: &str) -> Result<LabelsView> {
+    pub fn create(&self, name: &str, color: Option<&str>) -> Result<LabelsView> {
         let name = normalize_label(name)?;
+        let color = normalize_color_opt(color)?;
         let mut state = self.state.lock().expect("label mutex poisoned");
         if state
             .labels
             .iter()
-            .any(|label| label.eq_ignore_ascii_case(&name))
+            .any(|label| label.name.eq_ignore_ascii_case(&name))
         {
             bail!("Labelen findes allerede.");
         }
-        state.labels.push(name);
-        state.labels.sort_by_key(|label| label.to_lowercase());
+        state.labels.push(LabelEntry { name, color });
+        state
+            .labels
+            .sort_by_key(|label| label.name.to_lowercase());
         save_file(&self.path, &state)?;
-        Ok(LabelsView {
-            labels: state.labels.clone(),
-            assignments: state.assignments.clone(),
-        })
+        Ok(view_of(&state))
+    }
+
+    pub fn set_color(&self, name: &str, color: Option<&str>) -> Result<LabelsView> {
+        let name = normalize_label(name)?;
+        let color = normalize_color_opt(color)?;
+        let mut state = self.state.lock().expect("label mutex poisoned");
+        let entry = state
+            .labels
+            .iter_mut()
+            .find(|label| label.name.eq_ignore_ascii_case(&name))
+            .with_context(|| "Labelen findes ikke.")?;
+        entry.color = color;
+        save_file(&self.path, &state)?;
+        Ok(view_of(&state))
     }
 
     pub fn remove(&self, name: &str) -> Result<LabelsView> {
         let name = normalize_label(name)?;
         let mut state = self.state.lock().expect("label mutex poisoned");
         let before = state.labels.len();
-        state.labels.retain(|label| !label.eq_ignore_ascii_case(&name));
+        state
+            .labels
+            .retain(|label| !label.name.eq_ignore_ascii_case(&name));
         if state.labels.len() == before {
             bail!("Labelen findes ikke.");
         }
-        state.assignments.retain(|_, label| !label.eq_ignore_ascii_case(&name));
+        state
+            .assignments
+            .retain(|_, label| !label.eq_ignore_ascii_case(&name));
         save_file(&self.path, &state)?;
-        Ok(LabelsView {
-            labels: state.labels.clone(),
-            assignments: state.assignments.clone(),
-        })
+        Ok(view_of(&state))
     }
 
     pub fn assign(&self, info_hash: &str, label: Option<&str>) -> Result<()> {
@@ -104,7 +153,7 @@ impl LabelStore {
             if !state
                 .labels
                 .iter()
-                .any(|existing| existing.eq_ignore_ascii_case(label))
+                .any(|existing| existing.name.eq_ignore_ascii_case(label))
             {
                 bail!("Labelen findes ikke.");
             }
@@ -145,6 +194,23 @@ impl LabelStore {
     }
 }
 
+fn view_of(state: &LabelsFile) -> LabelsView {
+    LabelsView {
+        labels: state.labels.iter().map(|label| label.name.clone()).collect(),
+        assignments: state.assignments.clone(),
+        colors: state
+            .labels
+            .iter()
+            .filter_map(|label| {
+                label
+                    .color
+                    .as_ref()
+                    .map(|color| (label.name.clone(), color.clone()))
+            })
+            .collect(),
+    }
+}
+
 fn normalize_label(name: &str) -> Result<String> {
     let name = name.trim();
     if name.is_empty() || name.chars().count() > 40 {
@@ -154,6 +220,32 @@ fn normalize_label(name: &str) -> Result<String> {
         bail!("Labelnavnet indeholder ugyldige tegn.");
     }
     Ok(name.to_owned())
+}
+
+fn normalize_color_opt(color: Option<&str>) -> Result<Option<String>> {
+    match color.map(str::trim).filter(|color| !color.is_empty()) {
+        Some(color) => Ok(Some(normalize_color(color)?)),
+        None => Ok(None),
+    }
+}
+
+/// Accepts `#rgb`, `#rrggbb`, `rgb` or `rrggbb` and returns `#rrggbb` in lower
+/// case. Anything else is rejected so the value can be used in CSS safely.
+fn normalize_color(color: &str) -> Result<String> {
+    let hex = color.trim().trim_start_matches('#');
+    let expanded = match hex.len() {
+        3 => hex
+            .chars()
+            .flat_map(|c| [c, c])
+            .collect::<String>()
+            .to_lowercase(),
+        6 => hex.to_lowercase(),
+        _ => bail!("Farven skal være en hex-farve som #c6f45c."),
+    };
+    if !expanded.chars().all(|c| c.is_ascii_hexdigit()) {
+        bail!("Farven skal være en hex-farve som #c6f45c.");
+    }
+    Ok(format!("#{expanded}"))
 }
 
 fn read_file(path: &Path) -> Result<LabelsFile> {
@@ -193,7 +285,7 @@ mod tests {
     #[test]
     fn creates_assigns_and_removes_labels() {
         let (path, store) = store();
-        store.create("Film").unwrap();
+        store.create("Film", None).unwrap();
         store.assign("abc", Some("Film")).unwrap();
         assert_eq!(store.view().assignments.get("abc").unwrap(), "Film");
         store.remove("film").unwrap();
@@ -204,10 +296,38 @@ mod tests {
     #[test]
     fn rejects_duplicate_and_invalid_labels() {
         let (path, store) = store();
-        store.create("Serier").unwrap();
-        assert!(store.create("serier").is_err());
-        assert!(store.create("").is_err());
-        assert!(store.create(&"x".repeat(41)).is_err());
+        store.create("Serier", None).unwrap();
+        assert!(store.create("serier", None).is_err());
+        assert!(store.create("", None).is_err());
+        assert!(store.create(&"x".repeat(41), None).is_err());
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn stores_and_clears_label_colors() {
+        let (path, store) = store();
+        store.create("Film", Some("#C6F45C")).unwrap();
+        assert_eq!(store.view().colors.get("Film").unwrap(), "#c6f45c");
+        store.set_color("film", Some("#7d3")).unwrap();
+        assert_eq!(store.view().colors.get("Film").unwrap(), "#77dd33");
+        store.set_color("Film", None).unwrap();
+        assert!(store.view().colors.is_empty());
+        assert!(store.create("Bad", Some("not-a-color")).is_err());
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn reads_the_legacy_label_list() {
+        let path = std::env::temp_dir().join(format!(
+            "nordtorrent-labels-legacy-{}-{}.json",
+            std::process::id(),
+            rand::random::<u64>()
+        ));
+        fs::write(&path, r#"{"version":1,"labels":["Film","Serier"],"assignments":{}}"#).unwrap();
+        let store = LabelStore::load(path.clone()).unwrap();
+        let view = store.view();
+        assert_eq!(view.labels, vec!["Film", "Serier"]);
+        assert!(view.colors.is_empty());
         let _ = fs::remove_file(path);
     }
 }

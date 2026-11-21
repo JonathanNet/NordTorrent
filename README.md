@@ -32,7 +32,7 @@ Think of it as a headless replacement for rTorrent/ruTorrent: same idea, but wit
 - **Torrent engine**: `librqbit` with DHT, trackers, fast resume and session persistence.
 - **Web panel**: add magnet links or `.torrent` files, search, filter, pause/resume, pick files and delete with or without data.
 - **Multiple download folders**: mounted folders under `/downloads` are discovered automatically by name (for example `series2`, `old_shows`). Browse and search subfolders rutorrent-style and choose the exact destination when adding a torrent.
-- **Labels**: create labels, assign them on add or later, and filter the torrent list by label — like the labels in ruTorrent.
+- **Labels**: create labels, give them an optional colour (or keep the neutral default), assign them on add or later, and filter the torrent list by label — like the labels in ruTorrent. Click a label dot in the sidebar to change its colour.
 - **Port status**: the top bar shows your public `IP:port` with a green/red/unknown indicator. The public IP is discovered automatically, and you can configure a forwarded external port (for example router `50000 -> 42000`) under **Settings -> Port & network**.
 - **Theme and language**: System, Dark or Light, plus Danish or English under **Settings -> Appearance & language**. The choice is stored in the browser, and the theme can also be switched from the login screen.
 - **Direct links**: pages have their own URLs (`/settings`, `/library`, `/downloading`, `/completed`, `/rss`, `/stats`), so reload, back/forward and bookmarks keep you in place.

@@ -828,11 +828,17 @@
             <svg class="icon"><use href="#i-x"></use></svg>
           </button>
         </div>
+        <input id="label-edit-name" type="hidden" value="" />
         <label class="field"><span>Navn</span><input id="label-name" type="text" maxlength="40" required /></label>
+        <div class="field">
+          <span>Farve</span>
+          <input id="label-color" type="hidden" value="" />
+          <div id="label-colors" class="color-swatches" role="group" aria-label="Farve"></div>
+        </div>
         <p id="label-error" class="form-error" hidden></p>
         <div class="modal-actions">
           <button type="button" class="btn btn-ghost" data-close="label-modal">Annuller</button>
-          <button class="btn btn-primary" type="submit">Opret label</button>
+          <button id="label-submit" class="btn btn-primary" type="submit">Opret label</button>
         </div>
       </form>
     </div>

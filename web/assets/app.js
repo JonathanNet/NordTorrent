@@ -1,6 +1,16 @@
 const API = "/api/v1";
 const TV_LIBRARY_KEY = "nordtorrent.tvLibrary";
 const LABELS_VISIBLE_KEY = "nordtorrent.labelsVisible";
+const LABEL_COLORS = [
+  "#c6f45c",
+  "#7dd3fc",
+  "#f0abfc",
+  "#fca5a5",
+  "#fbbf24",
+  "#86efac",
+  "#a5b4fc",
+  "#fdba74",
+];
 const VIEW_PATHS = {
   all: "/",
   downloading: "/downloading",
@@ -34,6 +44,7 @@ const state = {
   rssEditingId: null,
   labels: [],
   labelAssignments: {},
+  labelColors: {},
   labelFilter: "",
   rssFolderBrowser: {
     currentPath: "",
@@ -1160,7 +1171,7 @@ function torrentRow(torrent) {
   const folderLabel = torrent.folder ? ` · ${torrent.folder}` : "";
   const text = el("div", "torrent-text");
   text.appendChild(el("span", "torrent-title", torrent.name || "Ukendt torrent"));
-  if (torrent.label) text.appendChild(el("span", "torrent-label", torrent.label));
+  if (torrent.label) text.appendChild(tintLabel(el("span", "torrent-label", torrent.label), torrent.label));
   text.appendChild(
     el(
       "span",
@@ -1402,7 +1413,7 @@ function renderDetail(detail) {
     labelRow.appendChild(select);
     fragment.appendChild(labelRow);
   } else if (detail.label) {
-    fragment.appendChild(el("span", "detail-label-chip", detail.label));
+    fragment.appendChild(tintLabel(el("span", "detail-label-chip", detail.label), detail.label));
   }
 
   const grid = el("div", "detail-grid");
@@ -1752,11 +1763,33 @@ function closePlayer() {
 
 /* Labels */
 
+function labelColor(name) {
+  return state.labelColors?.[name] || "";
+}
+
+function tintLabel(node, name) {
+  const color = labelColor(name);
+  if (!color) return node;
+  node.style.color = color;
+  node.style.borderColor = `${color}59`;
+  node.style.background = `${color}1f`;
+  return node;
+}
+
+function labelDot(name) {
+  const dot = el("span", "label-dot");
+  const color = labelColor(name);
+  if (color) dot.style.background = color;
+  else dot.classList.add("is-empty");
+  return dot;
+}
+
 async function loadLabels() {
   try {
     const data = await api("/labels");
     state.labels = Array.isArray(data?.labels) ? data.labels : [];
     state.labelAssignments = data?.assignments || {};
+    state.labelColors = data?.colors || {};
     renderLabels();
     renderAddLabelPicker($("#add-label")?.value || "");
     if (state.labelFilter && !state.labels.includes(state.labelFilter)) {
@@ -1784,7 +1817,17 @@ function renderLabels() {
   for (const label of state.labels) {
     const row = el("button", `label-filter${state.labelFilter === label ? " active" : ""}`);
     row.type = "button";
-    row.append(document.createTextNode(label));
+    const dot = labelDot(label);
+    if (state.user?.role === "admin") {
+      dot.classList.add("is-button");
+      dot.title = t("Rediger farve");
+      dot.setAttribute("aria-label", t("Rediger farve"));
+      dot.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openLabelModal(label);
+      });
+    }
+    row.append(dot, document.createTextNode(label));
     row.append(
       el(
         "span",
@@ -1847,7 +1890,7 @@ function renderMobileLabels() {
         `mobile-label-chip${state.labelFilter === label ? " is-active" : ""}`
       );
       chip.type = "button";
-      chip.append(document.createTextNode(label));
+      chip.append(labelDot(label), document.createTextNode(label));
       chip.append(
         el(
           "span",
@@ -1870,7 +1913,7 @@ function renderMobileLabels() {
       add.appendChild(icon("plus"));
       add.title = t("Ny label");
       add.setAttribute("aria-label", add.title);
-      add.addEventListener("click", openLabelModal);
+      add.addEventListener("click", () => openLabelModal());
       fragment.appendChild(add);
     }
   }
@@ -1910,7 +1953,9 @@ function renderAddLabelPicker(selected = "") {
   for (const label of state.labels) {
     const option = el("button", `label-option${value === label ? " active" : ""}`);
     option.type = "button";
-    option.append(icon("folder"), document.createTextNode(label));
+    if (labelColor(label)) option.append(labelDot(label));
+    else option.append(icon("folder"));
+    option.append(document.createTextNode(label));
     option.append(
       el(
         "span",
@@ -1937,28 +1982,77 @@ function selectAddLabel(label) {
   renderAddLabelPicker(label);
 }
 
-function openLabelModal() {
-  $("#label-name").value = "";
+function openLabelModal(label = "") {
+  const editing = Boolean(label) && state.labels.includes(label);
+  $("#label-edit-name").value = editing ? label : "";
+  $("#label-name").value = editing ? label : "";
+  $("#label-name").readOnly = editing;
+  $("#label-color").value = editing ? labelColor(label) : "";
+  const title = $("#label-title");
+  if (title) title.textContent = editing ? t("Rediger label") : t("Ny label");
+  const submit = $("#label-submit");
+  if (submit) submit.textContent = editing ? t("Gem farve") : t("Opret label");
   $("#label-error").hidden = true;
+  renderLabelSwatches($("#label-color").value);
   openModal("label-modal");
-  setTimeout(() => $("#label-name").focus(), 80);
+  setTimeout(() => {
+    if (!editing) $("#label-name").focus();
+  }, 80);
+}
+
+function renderLabelSwatches(selected) {
+  const host = $("#label-colors");
+  if (!host) return;
+  const fragment = document.createDocumentFragment();
+
+  const none = el("button", `color-swatch color-none${selected ? "" : " active"}`);
+  none.type = "button";
+  none.title = t("Ingen farve");
+  none.setAttribute("aria-label", t("Ingen farve"));
+  none.addEventListener("click", () => selectLabelColor(""));
+  fragment.appendChild(none);
+
+  for (const color of LABEL_COLORS) {
+    const swatch = el("button", `color-swatch${selected === color ? " active" : ""}`);
+    swatch.type = "button";
+    swatch.style.background = color;
+    swatch.title = color;
+    swatch.setAttribute("aria-label", color);
+    swatch.addEventListener("click", () => selectLabelColor(color));
+    fragment.appendChild(swatch);
+  }
+  host.replaceChildren(fragment);
+}
+
+function selectLabelColor(color) {
+  $("#label-color").value = color;
+  renderLabelSwatches(color);
 }
 
 async function createLabel(event) {
   event.preventDefault();
   const error = $("#label-error");
   error.hidden = true;
+  const editing = $("#label-edit-name").value;
+  const color = $("#label-color").value || null;
   try {
-    const data = await api("/labels", {
-      method: "POST",
-      json: { name: $("#label-name").value.trim() },
-    });
+    const data = editing
+      ? await api(`/labels/${encodeURIComponent(editing)}`, {
+          method: "PUT",
+          json: { color },
+        })
+      : await api("/labels", {
+          method: "POST",
+          json: { name: $("#label-name").value.trim(), color },
+        });
     state.labels = data.labels;
     state.labelAssignments = data.assignments;
+    state.labelColors = data.colors || {};
     closeModal("label-modal");
     renderLabels();
     renderAddLabelPicker($("#add-label")?.value || "");
-    toast(t("Labelen er oprettet."), "success");
+    renderTorrents();
+    toast(t(editing ? "Farven er gemt." : "Labelen er oprettet."), "success");
   } catch (err) {
     error.textContent = err.message;
     error.hidden = false;
@@ -1977,6 +2071,7 @@ function removeLabel(label) {
       });
       state.labels = data.labels;
       state.labelAssignments = data.assignments;
+      state.labelColors = data.colors || {};
       if (state.labelFilter === label) state.labelFilter = "";
       renderLabels();
       renderAddLabelPicker("");
@@ -2863,7 +2958,7 @@ function bindGlobalEvents() {
   }
   $("#rss-form").addEventListener("submit", onRssSubmit);
   $("#labels-visibility-btn").addEventListener("click", toggleLabelsVisibility);
-  $("#label-add-btn").addEventListener("click", openLabelModal);
+  $("#label-add-btn").addEventListener("click", () => openLabelModal());
   $("#label-form").addEventListener("submit", createLabel);
   $("#add-label-display").addEventListener("click", toggleAddLabelPicker);
   $("#label-picker-new").addEventListener("click", () => {
