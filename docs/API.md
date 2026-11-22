@@ -40,7 +40,7 @@ The token is valid for `expires_in` seconds (30 days by default). Changing the p
 ```json
 {
   "setup_required": false,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "server_time": "2026-11-14T12:00:00+00:00",
   "api_version": 1,
   "features": ["download-browser", "network-status", "theme-language", "url-routing", "torrent-details", "sessions", "private-trackers", "tracker-completed", "stats-persistence", "torrent-subfolder", "monthly-stats", "thumbnails", "move-torrent", "extension-api", "speed-limits", "seeding-limits", "dht-toggle", "rss", "2fa", "labels", "totp-proxy-detect"]
@@ -597,7 +597,7 @@ Fetches the feed immediately and returns the updated feed. The server checks act
 
 ```json
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "uptime_seconds": 3600,
   "server_time": "2026-11-14T13:00:00+00:00",
   "torrents": { "torrents": [], "totals": { "...": "..." } },

@@ -3,13 +3,21 @@ const TV_LIBRARY_KEY = "nordtorrent.tvLibrary";
 const LABELS_VISIBLE_KEY = "nordtorrent.labelsVisible";
 const LABEL_COLORS = [
   "#c6f45c",
-  "#7dd3fc",
-  "#f0abfc",
-  "#fca5a5",
+  "#ff4d00",
   "#fbbf24",
+  "#facc15",
   "#86efac",
+  "#34d399",
+  "#7dd3fc",
+  "#38bdf8",
   "#a5b4fc",
-  "#fdba74",
+  "#c084fc",
+  "#f0abfc",
+  "#f472b6",
+  "#fca5a5",
+  "#fb7185",
+  "#94a3b8",
+  "#e2e8f0",
 ];
 const VIEW_PATHS = {
   all: "/",
