@@ -4440,3 +4440,24 @@ a:focus:not(:focus-visible) {
   width: 8px;
   height: 8px;
 }
+
+/* I2P settings */
+
+.settings-tag {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border: 1px solid rgba(198, 244, 92, 0.25);
+  border-radius: 999px;
+  background: var(--lime-soft);
+  color: var(--lime);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+#i2p-card .toggle-row {
+  margin-top: 2px;
+}

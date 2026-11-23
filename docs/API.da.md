@@ -40,7 +40,7 @@ Tokenet er gyldigt i `expires_in` sekunder (standard 30 dage). Et password-skift
 ```json
 {
   "setup_required": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "server_time": "2026-11-14T12:00:00+00:00",
   "api_version": 1,
   "features": ["download-browser", "network-status", "theme-language", "url-routing", "torrent-details", "sessions", "private-trackers", "tracker-completed", "stats-persistence", "torrent-subfolder", "monthly-stats", "thumbnails", "move-torrent", "extension-api", "speed-limits", "seeding-limits", "dht-toggle", "rss", "2fa", "labels", "totp-proxy-detect"]
@@ -565,6 +565,41 @@ pauser torrenten, når en grænse nås. Indstillingerne gemmes i
 Slår DHT til eller fra. Ændringen gemmes i `/data/dht.json` og træder i kraft
 efter genstart af serveren.
 
+### I2P (eksperimentel)
+
+#### `GET /i2p` (admin)
+
+```json
+{
+  "enabled": false,
+  "host": "127.0.0.1",
+  "port": 7656,
+  "mixed_mode": false,
+  "pex": true,
+  "socks_proxy": "127.0.0.1:4447"
+}
+```
+
+#### `PUT /i2p` (admin)
+
+Samme felter. `host`/`port` peger på I2P-routerens SAM-bro; `socks_proxy` er routerens SOCKS5-endpoint. Når `enabled` er sand, sendes tracker- og peer-trafik gennem SOCKS-proxyen, og med `mixed_mode: false` slås DHT fra, så klienten ikke annoncerer sig på clearnet. Gemmes i `/data/i2p.json` og læses når torrent-sessionen starter, så en genstart anvender ændringerne.
+
+#### `POST /i2p/test` (admin)
+
+Tester de indsendte indstillinger uden at gemme dem: forbinder til SAM-broen, laver et `HELLO VERSION`-håndtryk, opretter en midlertidig STREAM-session og tjekker om SOCKS-proxyen accepterer en TCP-forbindelse.
+
+```json
+{
+  "reachable": true,
+  "reason": "ok",
+  "sam_version": "3.3",
+  "destination": "joyg7dsohj3rluqb2vz5bkscg5rokxnl2yncyarhr6swzrwsstqa.b32.i2p",
+  "socks_reachable": true
+}
+```
+
+`reason` er `ok`, `connect_failed`, `timeout`, `hello_failed` eller `session_failed`; `detail` indeholder routerens rå svar, når der er et. Destinationen er kun med, når routeren returnerer den for den midlertidige session.
+
 ### RSS
 
 #### `GET /rss` (admin)
@@ -608,7 +643,7 @@ aktive feeds automatisk hvert 15. minut.
 
 ```json
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "uptime_seconds": 3600,
   "server_time": "2026-11-14T13:00:00+00:00",
   "torrents": { "torrents": [], "totals": { "...": "..." } },

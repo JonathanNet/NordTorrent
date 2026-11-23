@@ -48,6 +48,7 @@ const state = {
   speedLimits: null,
   seedingSettings: null,
   dhtSettings: null,
+  i2pSettings: null,
   rssFeeds: [],
   rssEditingId: null,
   labels: [],
@@ -395,6 +396,7 @@ function renderUser() {
   $("#speed-card").hidden = !isAdmin;
   $("#seeding-card").hidden = !isAdmin;
   $("#dht-card").hidden = !isAdmin;
+  $("#i2p-card").hidden = !isAdmin;
   const rssNav = $('.nav-item[data-view="rss"]');
   if (rssNav) rssNav.hidden = !isAdmin;
 }
@@ -477,6 +479,7 @@ function setView(view, options = {}) {
     loadSpeedLimits().catch((error) => toast(error.message, "error"));
     loadSeedingSettings().catch((error) => toast(error.message, "error"));
     loadDhtSettings().catch((error) => toast(error.message, "error"));
+    loadI2pSettings().catch((error) => toast(error.message, "error"));
   }
   if (!library && !settings && !stats && !rss) renderTorrents();
 }
@@ -911,6 +914,91 @@ async function saveDhtSettings() {
   } catch (err) {
     error.textContent = err.message;
     error.hidden = false;
+  } finally {
+    setButtonLoading(button, false);
+  }
+}
+
+async function loadI2pSettings() {
+  if (!state.user || state.user.role !== "admin") return;
+  const data = await api("/i2p");
+  state.i2pSettings = data;
+  renderI2pSettings(data);
+}
+
+function renderI2pSettings(data) {
+  if (!data) return;
+  $("#i2p-error").hidden = true;
+  $("#i2p-enabled").checked = Boolean(data.enabled);
+  $("#i2p-host").value = data.host || "127.0.0.1";
+  $("#i2p-port").value = data.port || 7656;
+  $("#i2p-socks").value = data.socks_proxy || "127.0.0.1:4447";
+  $("#i2p-mixed").checked = Boolean(data.mixed_mode);
+  $("#i2p-pex").checked = data.pex !== false;
+  $("#i2p-hint").textContent = data.enabled
+    ? t("I2P er slået til. Genstart serveren for at anvende SOCKS-proxy og mixed mode.")
+    : t("I2P er slået fra. Genstart serveren efter du har slået det til.");
+}
+
+function readI2pForm() {
+  return {
+    enabled: $("#i2p-enabled").checked,
+    host: $("#i2p-host").value.trim() || "127.0.0.1",
+    port: Number($("#i2p-port").value) || 7656,
+    mixed_mode: $("#i2p-mixed").checked,
+    pex: $("#i2p-pex").checked,
+    socks_proxy: $("#i2p-socks").value.trim() || "127.0.0.1:4447",
+  };
+}
+
+async function saveI2pSettings() {
+  const error = $("#i2p-error");
+  error.hidden = true;
+  const button = $("#i2p-save");
+  setButtonLoading(button, true);
+  try {
+    state.i2pSettings = await api("/i2p", { method: "PUT", json: readI2pForm() });
+    renderI2pSettings(state.i2pSettings);
+    toast(t("I2P-indstillinger gemt. Genstart serveren for at anvende dem."), "success");
+  } catch (err) {
+    error.textContent = err.message;
+    error.hidden = false;
+  } finally {
+    setButtonLoading(button, false);
+  }
+}
+
+async function testI2pConnection() {
+  const error = $("#i2p-error");
+  const status = $("#i2p-status");
+  error.hidden = true;
+  const button = $("#i2p-test");
+  setButtonLoading(button, true);
+  status.textContent = t("Tester I2P-routeren…");
+  try {
+    const probe = await api("/i2p/test", { method: "POST", json: readI2pForm() });
+    const reasons = {
+      ok: t("SAM-broen svarer, og I2P-destinationen er klar."),
+      connect_failed: t("Kunne ikke forbinde til SAM-broen."),
+      timeout: t("SAM-broen svarede ikke i tide."),
+      hello_failed: t("SAM-broen afviste hilsenen."),
+      session_failed: t("SAM-broen svarede, men sessionen blev afvist."),
+    };
+    const parts = [reasons[probe.reason] || t("Ukendt svar fra SAM-broen.")];
+    if (probe.detail) parts.push(probe.detail);
+    if (probe.sam_version) parts.push(`SAM ${probe.sam_version}`);
+    if (probe.destination) parts.push(probe.destination);
+    parts.push(
+      probe.socks_reachable
+        ? t("SOCKS-proxyen svarer.")
+        : t("SOCKS-proxyen svarer ikke – tjek at den er slået til i I2P-routeren.")
+    );
+    status.textContent = parts.join(" · ");
+    status.classList.toggle("error-text", !probe.reachable);
+  } catch (err) {
+    error.textContent = err.message;
+    error.hidden = false;
+    status.textContent = "";
   } finally {
     setButtonLoading(button, false);
   }
@@ -2935,6 +3023,8 @@ function bindGlobalEvents() {
   $("#seeding-save").addEventListener("click", saveSeedingSettings);
   $("#seeding-keep").addEventListener("change", updateSeedingRows);
   $("#dht-save").addEventListener("click", saveDhtSettings);
+  $("#i2p-save").addEventListener("click", saveI2pSettings);
+  $("#i2p-test").addEventListener("click", testI2pConnection);
   $("#totp-enable-btn").addEventListener("click", openTotpSetup);
   $("#totp-disable-btn").addEventListener("click", openTotpDisable);
   $("#totp-confirm").addEventListener("click", confirmTotpSetup);

@@ -25,6 +25,7 @@ use crate::{
     discovery::DhtSettings,
     downloads::{DownloadBrowser, DownloadFolder},
     error::AppError,
+    i2p::{self, I2pSettings},
     labels::LabelsView,
     limits::SpeedLimitSettings,
     network::NetworkStatus,
@@ -64,6 +65,7 @@ pub const FEATURES: &[&str] = &[
     "2fa",
     "labels",
     "label-colors",
+    "i2p",
     "totp-proxy-detect",
 ];
 
@@ -107,6 +109,8 @@ pub fn router(state: AppState) -> Router {
         .route("/api/v1/limits", get(speed_limits).put(update_speed_limits))
         .route("/api/v1/seeding", get(seeding_settings).put(update_seeding_settings))
         .route("/api/v1/dht", get(dht_settings).put(update_dht_settings))
+        .route("/api/v1/i2p", get(i2p_settings).put(update_i2p_settings))
+        .route("/api/v1/i2p/test", post(test_i2p))
         .route("/api/v1/rss", get(list_rss).post(create_rss))
         .route(
             "/api/v1/rss/{id}",
@@ -955,6 +959,39 @@ async fn update_dht_settings(
         .update(settings)
         .map_err(|err| AppError::bad_request(err.to_string()))?;
     Ok(Json(state.dht.settings()))
+}
+
+async fn i2p_settings(
+    State(state): State<AppState>,
+    user: AuthUser,
+) -> Result<Json<I2pSettings>, AppError> {
+    user.require_admin()?;
+    Ok(Json(state.i2p.settings()))
+}
+
+async fn update_i2p_settings(
+    State(state): State<AppState>,
+    user: AuthUser,
+    Json(settings): Json<I2pSettings>,
+) -> Result<Json<I2pSettings>, AppError> {
+    user.require_admin()?;
+    let settings = state
+        .i2p
+        .update(settings)
+        .map_err(|err| AppError::bad_request(err.to_string()))?;
+    // SOCKS routing and I2P-only mode are read when the torrent session starts.
+    Ok(Json(settings))
+}
+
+async fn test_i2p(
+    user: AuthUser,
+    Json(settings): Json<I2pSettings>,
+) -> Result<Json<i2p::I2pProbe>, AppError> {
+    user.require_admin()?;
+    settings
+        .validate()
+        .map_err(|err| AppError::bad_request(err.to_string()))?;
+    Ok(Json(i2p::probe(&settings).await))
 }
 
 async fn list_rss(

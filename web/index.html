@@ -577,6 +577,45 @@
                 </div>
               </article>
 
+              <article class="settings-card" id="i2p-card" hidden>
+                <div class="settings-head">
+                  <svg class="icon"><use href="#i-globe"></use></svg>
+                  <h3>I2P <span class="settings-tag">Eksperimentel</span></h3>
+                </div>
+                <div class="speed-limit-row">
+                  <div class="speed-limit-copy">
+                    <strong>Aktivér I2P</strong>
+                    <small>Sender tracker- og peer-trafik gennem din I2P-router via SOCKS.</small>
+                  </div>
+                  <label class="speed-toggle">
+                    <input id="i2p-enabled" type="checkbox" />
+                    <span class="toggle"></span>
+                  </label>
+                </div>
+                <div class="field-row">
+                  <label class="field"><span>Vært</span><input id="i2p-host" type="text" value="127.0.0.1" autocomplete="off" /></label>
+                  <label class="field"><span>Port</span><input id="i2p-port" type="number" min="1" max="65535" value="7656" inputmode="numeric" /></label>
+                </div>
+                <label class="field"><span>SOCKS-proxy</span><input id="i2p-socks" type="text" value="127.0.0.1:4447" autocomplete="off" /></label>
+                <label class="toggle-row">
+                  <input id="i2p-mixed" type="checkbox" />
+                  <span class="toggle"></span>
+                  <span>Mixed mode (både I2P og clearnet)</span>
+                </label>
+                <label class="toggle-row">
+                  <input id="i2p-pex" type="checkbox" />
+                  <span class="toggle"></span>
+                  <span>Aktivér I2P Peer Exchange (kræver genstart)</span>
+                </label>
+                <p id="i2p-hint" class="form-hint">Ændringer træder i kraft efter genstart af serveren.</p>
+                <p id="i2p-status" class="form-hint"></p>
+                <p id="i2p-error" class="form-error" hidden></p>
+                <div class="network-actions">
+                  <button id="i2p-test" class="btn btn-ghost btn-compact" type="button">Test forbindelse</button>
+                  <button id="i2p-save" class="btn btn-primary btn-compact" type="button">Gem I2P</button>
+                </div>
+              </article>
+
               <article class="settings-card" id="password-card">
                 <div class="settings-head">
                   <svg class="icon"><use href="#i-lock"></use></svg>

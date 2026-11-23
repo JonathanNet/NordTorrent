@@ -44,6 +44,7 @@ Think of it as a headless replacement for rTorrent/ruTorrent: same idea, but wit
 - **Speed limits**: admins can toggle global download and upload limits and set a maximum in KB/s. Stored in `/data/speed-limits.json`.
 - **Seeding rules**: keep seeding after completion, or stop at a ratio/time. A background monitor enforces the limits and state is stored in `/data/seeding.json`.
 - **DHT toggle**: enable or disable DHT from the settings. Stored in `/data/dht.json` and applied on the next server start.
+- **I2P (experimental)**: enable I2P with a SAM bridge (host/port, default `127.0.0.1:7656`), route tracker and peer traffic through the I2P router's SOCKS proxy, choose mixed mode, and test the bridge from the settings. NordTorrent shows the SAM version and your `.b32.i2p` destination. Stored in `/data/i2p.json` and applied on the next server start.
 - **RSS automation**: add feeds with a destination folder, include/exclude filters and automatic downloads. Active feeds are checked every 15 minutes and can be checked on demand.
 - **Two-factor authentication**: TOTP/Google Authenticator can be enabled per account, including a QR code for setup. Direct logins from private/local addresses skip 2FA; external logins - including anything arriving through a Cloudflare Tunnel or reverse proxy - require the code.
 - **Chrome extension**: send `.torrent` downloads, copied magnet links and manual magnet links straight to the server from the bundled extension in [`extension/`](extension/), including labels and folder selection.

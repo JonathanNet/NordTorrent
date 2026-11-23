@@ -3,6 +3,7 @@ use std::{sync::Arc, time::Instant};
 use librqbit::{Api, Session};
 
 use crate::{
+    i2p::I2pStore,
     auth::AuthService, config::Config, discovery::DhtStore, downloads::DownloadFolders,
     labels::LabelStore, limits::RateLimitStore, network::NetworkService, rss::RssStore,
     seeding::SeedingStore, stats::StatsStore,
@@ -21,6 +22,7 @@ pub struct AppState {
     pub seeding: Arc<SeedingStore>,
     pub rss: Arc<RssStore>,
     pub labels: Arc<LabelStore>,
+    pub i2p: Arc<I2pStore>,
     #[allow(dead_code)]
     pub session: Arc<Session>,
     pub started_at: Instant,
@@ -39,6 +41,7 @@ impl AppState {
         seeding: Arc<SeedingStore>,
         rss: Arc<RssStore>,
         labels: Arc<LabelStore>,
+        i2p: Arc<I2pStore>,
     ) -> Self {
         let api = Api::new(
             session.clone(),
@@ -56,6 +59,7 @@ impl AppState {
             seeding,
             rss,
             labels,
+            i2p,
             session,
             started_at: Instant::now(),
         }

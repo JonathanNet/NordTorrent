@@ -41,6 +41,7 @@ Inspirationen er rtorrent/rutorrent, men overfladen er gjort mere nutidig: mørk
 - **Hastighedsgrænser**: admin kan slå globale download- og uploadgrænser til/fra og angive maksimal hastighed i KB/s. Indstillingerne gemmes i `/data/speed-limits.json`.
 - **Seeding**: admin kan beholde seeding efter færdiggørelse eller stoppe ved en ratio/tid. Grænserne overvåges automatisk og gemmes i `/data/seeding.json`.
 - **DHT**: admin kan slå DHT til/fra. Ændringen gemmes i `/data/dht.json` og anvendes ved næste serverstart.
+- **I2P (eksperimentel)**: slå I2P til med en SAM-bro (vært/port, standard `127.0.0.1:7656`), send tracker- og peer-trafik gennem I2P-routerens SOCKS-proxy, vælg mixed mode, og test broen direkte i indstillingerne. NordTorrent viser SAM-version og din `.b32.i2p`-destination. Gemmes i `/data/i2p.json` og anvendes ved næste serverstart.
 - **RSS/automatiske downloads**: admin kan tilføje RSS-feeds med mappe, include/exclude-filtre og automatisk download. Feeds tjekkes hvert 15. minut og kan tjekkes manuelt.
 - **2FA**: TOTP/Google Authenticator kan slås til pr. konto, inklusive QR-kode til opsætning. Direkte login fra private/lokale netværksadresser springer 2FA over; eksterne login – også via Cloudflare Tunnel eller reverse proxy – kræver koden.
 - **Chrome-extension**: `.torrent`-downloads, kopierede magnet-links og manuelle magnet-links kan sendes direkte til serveren via den medfølgende extension i `extension/` – med label og mappevalg. Se [extension/README.md](extension/README.md).

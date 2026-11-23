@@ -4,6 +4,7 @@ mod config;
 mod discovery;
 mod downloads;
 mod error;
+mod i2p;
 mod labels;
 mod limits;
 mod network;
@@ -23,7 +24,7 @@ use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 use crate::{
-    auth::AuthService, config::Config, discovery::DhtStore, downloads::DownloadFolders,
+    auth::AuthService, config::Config, discovery::DhtStore, downloads::DownloadFolders, i2p::I2pStore,
     labels::LabelStore, limits::RateLimitStore, network::NetworkService, rss::RssStore,
     seeding::SeedingStore, state::AppState, stats::StatsStore,
 };
@@ -61,6 +62,16 @@ async fn main() -> Result<()> {
     let labels = Arc::new(
         LabelStore::load(config.labels_path()).context("could not load labels")?,
     );
+    let i2p = Arc::new(I2pStore::load(config.i2p_path()).context("could not load I2P settings")?);
+    let i2p_settings = i2p.settings();
+    if i2p_settings.enabled {
+        info!(
+            sam = %format!("{}:{}", i2p_settings.host, i2p_settings.port),
+            socks = %i2p_settings.socks_proxy,
+            mixed_mode = i2p_settings.mixed_mode,
+            "I2P support enabled"
+        );
+    }
 
     let mut options = SessionOptions {
         fastresume: true,
@@ -77,7 +88,9 @@ async fn main() -> Result<()> {
         enable_upnp_port_forwarding: false,
         defer_writes_up_to: Some(64),
         ratelimits: speed_limits.limits_config(),
-        disable_dht: !dht.settings().enabled,
+        // I2P-only mode keeps the client off the clearnet entirely.
+        disable_dht: !dht.settings().enabled || (i2p_settings.enabled && !i2p_settings.mixed_mode),
+        socks_proxy_url: i2p_settings.socks_url(),
         ..Default::default()
     };
     options
@@ -122,6 +135,7 @@ async fn main() -> Result<()> {
         seeding,
         rss,
         labels,
+        i2p,
     );
     state
         .stats

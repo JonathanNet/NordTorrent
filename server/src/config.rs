@@ -165,6 +165,10 @@ impl Config {
         self.data_dir.join("labels.json")
     }
 
+    pub fn i2p_path(&self) -> PathBuf {
+        self.data_dir.join("i2p.json")
+    }
+
     pub fn is_local_url(&self) -> bool {
         self.public_url
             .as_deref()
