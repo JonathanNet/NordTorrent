@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NordTorrent Download Helper",
-  "version": "1.4.0",
+  "version": "1.4.2",
   "description": "Send .torrent downloads and magnet links straight to your NordTorrent server.",
   "minimum_chrome_version": "111",
   "permissions": ["downloads", "storage"],

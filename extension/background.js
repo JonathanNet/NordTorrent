@@ -39,28 +39,80 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.downloads.onDeterminingFilename.addListener((item) => {
-  if (!isTorrentDownload(item)) return;
-  if (popupEnabled) {
-    cancelDownload(item.id);
-    return;
+  try {
+    if (!isTorrentDownload(item)) return;
+    if (popupEnabled) {
+      cancelDownload(item.id);
+      return;
+    }
+    // The cached value may be stale if the worker was asleep when the user
+    // changed the setting.  Re-check before leaving the download alone.
+    chrome.storage.local
+      .get(["popupEnabled"])
+      .then((stored) => {
+        popupEnabled = stored.popupEnabled !== false;
+        if (popupEnabled) cancelDownload(item.id);
+      })
+      .catch((error) => console.debug("NordTorrent: storage read failed", error));
+  } catch (error) {
+    console.debug("NordTorrent: onDeterminingFilename failed", error);
   }
-  // The cached value may be stale if the worker was asleep when the user
-  // changed the setting.  Re-check before leaving the download alone.
-  chrome.storage.local.get(["popupEnabled"]).then((stored) => {
-    popupEnabled = stored.popupEnabled !== false;
-    if (popupEnabled) cancelDownload(item.id);
-  });
 });
 
-function cancelDownload(downloadId) {
+// Ids we already tried to cancel, so a replayed event cannot trigger a second
+// cancel on a download that is no longer in progress.
+const cancelAttempts = new Map();
+const CANCEL_TTL_MS = 10000;
+
+async function cancelDownload(downloadId) {
+  if (!Number.isInteger(downloadId) || downloadId < 0) return;
+
+  const previous = cancelAttempts.get(downloadId);
+  if (previous && Date.now() - previous < CANCEL_TTL_MS) return;
+  cancelAttempts.set(downloadId, Date.now());
+  if (cancelAttempts.size > 200) {
+    const cutoff = Date.now() - CANCEL_TTL_MS;
+    for (const [id, at] of cancelAttempts) {
+      if (at < cutoff) cancelAttempts.delete(id);
+    }
+  }
+
+  // Only an in-progress download can be cancelled.  Checking first avoids
+  // "Download must be in progress" when the file was already fetched, which
+  // otherwise shows up as an unchecked runtime error.
   try {
-    chrome.downloads.cancel(downloadId, () => {
-      // Read lastError so a download that has already disappeared does not
-      // produce "Unchecked runtime.lastError: Invalid downloadId".
-      void chrome.runtime.lastError;
-    });
+    const found = await chrome.downloads
+      .search({ id: downloadId })
+      .catch(() => []);
+    const item = Array.isArray(found) ? found[0] : null;
+    if (!item || item.state !== "in_progress") return;
   } catch (error) {
-    // The download is already gone.
+    return;
+  }
+
+  try {
+    const pending = chrome.downloads.cancel(downloadId);
+    if (pending && typeof pending.catch === "function") {
+      pending.catch((error) => {
+        console.debug("NordTorrent: cancel ignored", error?.message || error);
+      });
+    } else {
+      chrome.downloads.cancel(downloadId, () => {
+        if (chrome.runtime.lastError) {
+          console.debug("NordTorrent: cancel ignored", chrome.runtime.lastError.message);
+        }
+      });
+    }
+  } catch (error) {
+    try {
+      chrome.downloads.cancel(downloadId, () => {
+        if (chrome.runtime.lastError) {
+          console.debug("NordTorrent: cancel ignored", chrome.runtime.lastError.message);
+        }
+      });
+    } catch (fallbackError) {
+      console.debug("NordTorrent: cancel threw", fallbackError);
+    }
   }
 }
 

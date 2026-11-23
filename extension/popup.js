@@ -266,6 +266,11 @@
     }
     await chrome.storage.local.remove(["lastTorrentDownloadId"]);
 
+    const version = chrome.runtime.getManifest?.()?.version;
+    if (version && $("#extension-version")) {
+      $("#extension-version").textContent = `v${version}`;
+    }
+
     $("#server-input").value = state.server;
     $("#username-input").value = state.username;
     syncPopupToggles();
@@ -497,7 +502,8 @@
     }
     let item = null;
     try {
-      const found = await chrome.downloads.search({ id: state.downloadId });
+      // .catch() keeps a stale id from surfacing as an unchecked runtime error.
+      const found = await chrome.downloads.search({ id: state.downloadId }).catch(() => []);
       item = Array.isArray(found) && found.length ? found[0] : null;
     } catch (error) {
       console.warn("Could not read download", error);
