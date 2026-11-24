@@ -39,23 +39,43 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.downloads.onDeterminingFilename.addListener((item) => {
+  // Nothing to do here: cancelling inside this event is what made Chrome
+  // report "Unchecked runtime.lastError".  onCreated below handles it in its
+  // own task instead.
+  void item;
+});
+
+chrome.downloads.onCreated.addListener(async (item) => {
   try {
     if (!isTorrentDownload(item)) return;
-    if (popupEnabled) {
-      cancelDownload(item.id);
+    if (item.state && item.state !== "in_progress") return;
+
+    // Read the setting fresh: a service worker can be asleep when the user
+    // flips the toggle, so the cached value may still be stale.
+    const stored = await chrome.storage.local.get(["popupEnabled"]);
+    popupEnabled = stored.popupEnabled !== false;
+    if (!popupEnabled) return;
+
+    scheduleCancel(item.id);
+
+    // Chrome restores the download list on startup and can replay onCreated
+    // for old .torrent downloads.  Those are not new user actions and must not
+    // open a popup window (or a long list of windows).
+    const startedAt = Date.parse(item.startTime || "");
+    if (Number.isFinite(startedAt) && startedAt < WORKER_STARTED_AT - STARTUP_GRACE_MS) {
       return;
     }
-    // The cached value may be stale if the worker was asleep when the user
-    // changed the setting.  Re-check before leaving the download alone.
-    chrome.storage.local
-      .get(["popupEnabled"])
-      .then((stored) => {
-        popupEnabled = stored.popupEnabled !== false;
-        if (popupEnabled) cancelDownload(item.id);
-      })
-      .catch((error) => console.debug("NordTorrent: storage read failed", error));
+    if (await wasHandled(item.id)) return;
+
+    await markHandled(item.id);
+    const params = new URLSearchParams({
+      downloadId: String(item.id),
+      name: String(item.filename || "").split(/[\\/]/).pop() || "",
+      url: String(item.finalUrl || item.url || ""),
+    });
+    await openWindow(`popup.html?${params.toString()}`);
   } catch (error) {
-    console.debug("NordTorrent: onDeterminingFilename failed", error);
+    console.debug("NordTorrent: onCreated failed", error);
   }
 });
 
@@ -64,8 +84,9 @@ chrome.downloads.onDeterminingFilename.addListener((item) => {
 const cancelAttempts = new Map();
 const CANCEL_TTL_MS = 10000;
 
-async function cancelDownload(downloadId) {
-  if (!Number.isInteger(downloadId) || downloadId < 0) return;
+function cancelDownload(downloadId, state) {
+  if (!Number.isInteger(downloadId) || downloadId < 1) return;
+  if (state && state !== "in_progress") return;
 
   const previous = cancelAttempts.get(downloadId);
   if (previous && Date.now() - previous < CANCEL_TTL_MS) return;
@@ -77,69 +98,23 @@ async function cancelDownload(downloadId) {
     }
   }
 
-  // Only an in-progress download can be cancelled.  Checking first avoids
-  // "Download must be in progress" when the file was already fetched, which
-  // otherwise shows up as an unchecked runtime error.
+  // Callback form with lastError read inside the callback: that is the only
+  // way Chrome treats the error as handled.
   try {
-    const found = await chrome.downloads
-      .search({ id: downloadId })
-      .catch(() => []);
-    const item = Array.isArray(found) ? found[0] : null;
-    if (!item || item.state !== "in_progress") return;
+    chrome.downloads.cancel(downloadId, () => {
+      if (chrome.runtime.lastError) {
+        console.debug("NordTorrent: cancel ignored", chrome.runtime.lastError.message);
+      }
+    });
   } catch (error) {
-    return;
-  }
-
-  try {
-    const pending = chrome.downloads.cancel(downloadId);
-    if (pending && typeof pending.catch === "function") {
-      pending.catch((error) => {
-        console.debug("NordTorrent: cancel ignored", error?.message || error);
-      });
-    } else {
-      chrome.downloads.cancel(downloadId, () => {
-        if (chrome.runtime.lastError) {
-          console.debug("NordTorrent: cancel ignored", chrome.runtime.lastError.message);
-        }
-      });
-    }
-  } catch (error) {
-    try {
-      chrome.downloads.cancel(downloadId, () => {
-        if (chrome.runtime.lastError) {
-          console.debug("NordTorrent: cancel ignored", chrome.runtime.lastError.message);
-        }
-      });
-    } catch (fallbackError) {
-      console.debug("NordTorrent: cancel threw", fallbackError);
-    }
+    console.debug("NordTorrent: cancel threw", error);
   }
 }
 
-chrome.downloads.onCreated.addListener(async (item) => {
-  if (!isTorrentDownload(item)) return;
-  if (item.state && item.state !== "in_progress" && item.state !== "interrupted") {
-    return;
-  }
-
-  // Chrome restores the download list on startup and can replay onCreated for
-  // old .torrent downloads.  Those are not new user actions and must not open
-  // a popup window (or a long list of windows).
-  const startedAt = Date.parse(item.startTime || "");
-  if (Number.isFinite(startedAt) && startedAt < WORKER_STARTED_AT - STARTUP_GRACE_MS) {
-    return;
-  }
-  if (await wasHandled(item.id)) return;
-
-  // Read the setting fresh: a service worker can be asleep when the user
-  // flips the toggle, so the cached value may still be stale.
-  const stored = await chrome.storage.local.get(["popupEnabled"]);
-  popupEnabled = stored.popupEnabled !== false;
-  if (!popupEnabled) return;
-
-  await markHandled(item.id);
-  await openWindow(`popup.html?downloadId=${encodeURIComponent(item.id)}`);
-});
+function scheduleCancel(downloadId) {
+  if (!Number.isInteger(downloadId) || downloadId < 1) return;
+  setTimeout(() => cancelDownload(downloadId, "in_progress"), 0);
+}
 
 chrome.windows.onRemoved.addListener((windowId) => {
   if (activePopupWindowId === windowId) activePopupWindowId = null;

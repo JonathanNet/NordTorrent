@@ -188,6 +188,8 @@
     popupEnabled: true,
     language: DEFAULT_LANGUAGE,
     downloadId: null,
+    downloadName: "",
+    downloadUrl: "",
     download: null,
     bytes: null,
     fileName: "",
@@ -260,6 +262,10 @@
     const params = new URLSearchParams(location.search);
     const queryId = Number(params.get("downloadId"));
     state.downloadId = Number.isFinite(queryId) && queryId > 0 ? queryId : null;
+    // The background worker already knows the file name and URL, so the popup
+    // never needs to call chrome.downloads itself.
+    state.downloadName = params.get("name") || "";
+    state.downloadUrl = params.get("url") || "";
     const queryMagnet = params.get("magnet") || "";
     if (/^magnet:\?/i.test(queryMagnet)) {
       $("#magnet-input").value = queryMagnet;
@@ -494,37 +500,28 @@
     state.bytes = null;
     state.fileName = "";
     $("#add-button").disabled = true;
-    if (!state.downloadId) {
+    if (!state.downloadId && !state.downloadUrl) {
       $("#download-name").textContent = t("main.none");
       $("#download-source").textContent = t("main.noneSub");
       $("#pick-file").hidden = false;
       return;
     }
-    let item = null;
-    try {
-      // .catch() keeps a stale id from surfacing as an unchecked runtime error.
-      const found = await chrome.downloads.search({ id: state.downloadId }).catch(() => []);
-      item = Array.isArray(found) && found.length ? found[0] : null;
-    } catch (error) {
-      console.warn("Could not read download", error);
-    }
-    state.download = item;
-    if (!item) {
+    if (!state.downloadUrl) {
       $("#download-name").textContent = t("main.notFound");
       $("#download-source").textContent = t("main.selectManually");
       $("#pick-file").hidden = false;
       return;
     }
-    state.fileName = filenameFromDownload(item);
-    $("#download-name").textContent = state.fileName || "Torrent download";
+    state.fileName = torrentFileName(state.downloadName || "download.torrent");
+    $("#download-name").textContent = state.fileName;
     try {
-      const host = new URL(item.finalUrl || item.url).host;
+      const host = new URL(state.downloadUrl).host;
       $("#download-source").textContent = t("main.fromHost", { host });
     } catch (error) {
       $("#download-source").textContent = t("main.fetchingFile");
     }
     $("#pick-file").hidden = true;
-    await fetchTorrent(item);
+    await fetchTorrent({ url: state.downloadUrl });
   }
 
   async function fetchTorrent(item) {
