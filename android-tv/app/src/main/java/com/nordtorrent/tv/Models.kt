@@ -40,6 +40,7 @@ data class TorrentSummary(
     val id: Int,
     val infoHash: String,
     val name: String,
+    val label: String = "",
     val state: String,
     val progress: Double,
     val progressBytes: Long,

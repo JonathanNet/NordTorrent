@@ -27,6 +27,7 @@ Inspirationen er rtorrent/rutorrent, men overfladen er gjort mere nutidig: mørk
 ## Funktioner
 
 - **Torrentmotor**: `librqbit` med DHT, trackers, fastresume og session-persistens.
+- **Sorterbare kolonner**: klik på Navn, Status, Størrelse, Fremskridt eller Hastighed i torrent-tabellen for at sortere; klik igen for omvendt rækkefølge. Valget huskes pr. browser.
 - **Webpanel**: tilføj magnet-links eller `.torrent`-filer, søg, filtrér, pause/genoptag, vælg filer, slet med eller uden filer.
 - **Flere downloadmapper**: mounts under `/downloads` vises automatisk ved navn (fx `series2`, `gamle_serier`). Du kan gennemse og søge i undermapper som i rutorrent og vælge den endelige sti, når du tilføjer en torrent.
 - **Labels**: opret labels, giv dem en valgfri farve (eller behold den neutrale standard), tildel dem ved tilføjelse eller senere, og filtrér torrentlisten efter label – som labels i ruTorrent. Klik på en label-prik i sidepanelet for at ændre farven.

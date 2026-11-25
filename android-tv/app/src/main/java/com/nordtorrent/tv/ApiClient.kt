@@ -242,6 +242,7 @@ class ApiClient(
             id = json.optInt("id"),
             infoHash = json.optString("info_hash"),
             name = json.optString("name"),
+            label = json.optString("label"),
             state = json.optString("state", "unknown"),
             progress = json.optDouble("progress", 0.0),
             progressBytes = json.optLong("progress_bytes"),

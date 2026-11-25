@@ -4461,3 +4461,54 @@ a:focus:not(:focus-visible) {
 #i2p-card .toggle-row {
   margin-top: 2px;
 }
+
+
+/* Sortable table header */
+
+.sort-button {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  justify-self: start;
+  transition: color 0.12s ease;
+}
+
+.sort-button > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sort-button:hover,
+.sort-button:focus-visible {
+  color: var(--text);
+}
+
+.sort-button.is-active {
+  color: var(--lime);
+}
+
+.sort-arrow {
+  display: inline-block;
+  width: 9px;
+  font-size: 8px;
+  line-height: 1;
+  color: currentColor;
+}
+
+.sort-button[data-dir="asc"] .sort-arrow::before {
+  content: "▲";
+}
+
+.sort-button[data-dir="desc"] .sort-arrow::before {
+  content: "▼";
+}

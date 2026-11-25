@@ -47,6 +47,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settingsServer: TextView
     private lateinit var settingsApi: TextView
     private lateinit var settingsVersion: TextView
+    private var statDownload: TextView? = null
+    private var statUpload: TextView? = null
+    private var statUploadSub: TextView? = null
+    private var statActive: TextView? = null
+    private var statActiveSub: TextView? = null
+    private var statDownloaded: TextView? = null
+    private var statDownloadedSub: TextView? = null
 
     private var currentPage = Page.LIBRARY
     private var loading = false
@@ -118,6 +125,13 @@ class MainActivity : AppCompatActivity() {
         settingsServer = findViewById(R.id.settings_server)
         settingsApi = findViewById(R.id.settings_api)
         settingsVersion = findViewById(R.id.settings_version)
+        statDownload = findViewById<TextView>(R.id.stat_download)
+        statUpload = findViewById<TextView>(R.id.stat_upload)
+        statUploadSub = findViewById<TextView>(R.id.stat_upload_sub)
+        statActive = findViewById<TextView>(R.id.stat_active)
+        statActiveSub = findViewById<TextView>(R.id.stat_active_sub)
+        statDownloaded = findViewById<TextView>(R.id.stat_downloaded)
+        statDownloadedSub = findViewById<TextView>(R.id.stat_downloaded_sub)
     }
 
     private fun bindData() {
@@ -134,6 +148,20 @@ class MainActivity : AppCompatActivity() {
         transfersList.layoutManager = LinearLayoutManager(this)
         transfersList.adapter = transferAdapter
         transfersList.setHasFixedSize(false)
+    }
+
+    private fun updateStats(totals: Totals) {
+        statDownload?.text = formatSpeed(totals.downloadSpeedBps)
+        statUpload?.text = formatSpeed(totals.uploadSpeedBps)
+        statActive?.text = totals.active.toString()
+        statActiveSub?.text = resources.getQuantityString(
+            R.plurals.stat_torrents,
+            totals.torrentCount,
+            totals.torrentCount,
+        )
+        statDownloaded?.text = formatBytes(totals.downloadedBytes)
+        statUploadSub?.text = formatBytes(totals.uploadedBytes)
+        statDownloadedSub?.text = ""
     }
 
     private fun gridColumns(): Int {
@@ -214,6 +242,7 @@ class MainActivity : AppCompatActivity() {
                 libraryAdapter.submitList(library)
                 transferAdapter.submitList(torrents.torrents)
                 libraryCount.text = library.size.toString()
+                updateStats(torrents.totals)
                 libraryEmpty.isVisible = library.isEmpty()
                 libraryList.isVisible = library.isNotEmpty()
                 transfersEmpty.isVisible = torrents.torrents.isEmpty()

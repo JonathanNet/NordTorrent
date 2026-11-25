@@ -100,4 +100,12 @@
     <string name="error_rate_limited">For mange forsøg. Prøv igen om lidt.</string>
     <string name="error_server">Serveren svarede med fejl %1$d.</string>
     <string name="error_missing_server">Serveradressen mangler.</string>
+    <string name="stat_download">DOWNLOAD</string>
+    <string name="stat_upload">UPLOAD</string>
+    <string name="stat_active">AKTIVE</string>
+    <string name="stat_downloaded">HENTET</string>
+    <plurals name="stat_torrents">
+        <item quantity="one">%d torrent</item>
+        <item quantity="other">%d torrents</item>
+    </plurals>
 </resources>

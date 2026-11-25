@@ -30,6 +30,7 @@ Think of it as a headless replacement for rTorrent/ruTorrent: same idea, but wit
 ## Features
 
 - **Torrent engine**: `librqbit` with DHT, trackers, fast resume and session persistence.
+- **Sortable columns**: click Name, Status, Size, Progress or Speed in the torrent table to sort; click again to reverse. The choice is remembered per browser.
 - **Web panel**: add magnet links or `.torrent` files, search, filter, pause/resume, pick files and delete with or without data.
 - **Multiple download folders**: mounted folders under `/downloads` are discovered automatically by name (for example `series2`, `old_shows`). Browse and search subfolders rutorrent-style and choose the exact destination when adding a torrent.
 - **Labels**: create labels, give them an optional colour (or keep the neutral default), assign them on add or later, and filter the torrent list by label — like the labels in ruTorrent. Click a label dot in the sidebar to change its colour.

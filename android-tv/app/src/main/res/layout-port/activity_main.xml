@@ -7,7 +7,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingBottom="62dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -80,50 +81,7 @@
                 android:textColor="@color/muted"
                 android:textSize="9sp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal">
 
-                <Button
-                    android:id="@+id/nav_library"
-                    style="@style/Widget.Nord.NavButton"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:minWidth="0dp"
-                    android:paddingStart="4dp"
-                    android:paddingEnd="4dp"
-                    android:text="@string/nav_library"
-                    android:textSize="11sp" />
-
-                <Button
-                    android:id="@+id/nav_transfers"
-                    style="@style/Widget.Nord.NavButton"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="4dp"
-                    android:layout_weight="1"
-                    android:minWidth="0dp"
-                    android:paddingStart="4dp"
-                    android:paddingEnd="4dp"
-                    android:text="@string/nav_transfers"
-                    android:textSize="11sp" />
-
-                <Button
-                    android:id="@+id/nav_settings"
-                    style="@style/Widget.Nord.NavButton"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="4dp"
-                    android:layout_weight="1"
-                    android:minWidth="0dp"
-                    android:paddingStart="4dp"
-                    android:paddingEnd="4dp"
-                    android:text="@string/nav_settings"
-                    android:textSize="11sp" />
-            </LinearLayout>
         </LinearLayout>
 
         <FrameLayout
@@ -244,6 +202,143 @@
                     android:layout_marginTop="3dp"
                     android:text="@string/transfers_subtitle"
                     android:textSize="11sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/panel_bg"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            style="@style/Text.Eyebrow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/stat_download" />
+
+                        <TextView
+                            android:id="@+id/stat_download"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="0 B/s"
+                            android:textColor="@color/text"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/stat_upload_sub"
+                            style="@style/Text.Muted"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/panel_bg"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            style="@style/Text.Eyebrow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/stat_upload" />
+
+                        <TextView
+                            android:id="@+id/stat_upload"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="0 B/s"
+                            android:textColor="@color/text"
+                            android:textSize="17sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/panel_bg"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            style="@style/Text.Eyebrow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/stat_active" />
+
+                        <TextView
+                            android:id="@+id/stat_active"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="0"
+                            android:textColor="@color/text"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/stat_active_sub"
+                            style="@style/Text.Muted"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/panel_bg"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            style="@style/Text.Eyebrow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/stat_downloaded" />
+
+                        <TextView
+                            android:id="@+id/stat_downloaded"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="0 B"
+                            android:textColor="@color/text"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/stat_downloaded_sub"
+                            style="@style/Text.Muted"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -437,5 +532,69 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/loading" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="62dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bottom_nav_bg"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp">
+
+        <Button
+            android:id="@+id/nav_library"
+            style="@style/Widget.Nord.NavButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:drawableTop="@drawable/ic_film"
+            android:drawableTint="@color/nav_text_color"
+            android:drawablePadding="3dp"
+            android:gravity="center"
+            android:minWidth="0dp"
+            android:paddingStart="2dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="2dp"
+            android:paddingBottom="4dp"
+            android:text="@string/nav_library"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/nav_transfers"
+            style="@style/Widget.Nord.NavButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:drawableTop="@drawable/ic_transfers"
+            android:drawableTint="@color/nav_text_color"
+            android:drawablePadding="3dp"
+            android:gravity="center"
+            android:minWidth="0dp"
+            android:paddingStart="2dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="2dp"
+            android:paddingBottom="4dp"
+            android:text="@string/nav_transfers"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/nav_settings"
+            style="@style/Widget.Nord.NavButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:drawableTop="@drawable/ic_settings"
+            android:drawableTint="@color/nav_text_color"
+            android:drawablePadding="3dp"
+            android:gravity="center"
+            android:minWidth="0dp"
+            android:paddingStart="2dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="2dp"
+            android:paddingBottom="4dp"
+            android:text="@string/nav_settings"
+            android:textSize="10sp" />
     </LinearLayout>
 </FrameLayout>

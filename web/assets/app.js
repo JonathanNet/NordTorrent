@@ -1,6 +1,7 @@
 const API = "/api/v1";
 const TV_LIBRARY_KEY = "nordtorrent.tvLibrary";
 const LABELS_VISIBLE_KEY = "nordtorrent.labelsVisible";
+const SORT_KEY = "nordtorrent.sort";
 const LABEL_COLORS = [
   "#c6f45c",
   "#ff4d00",
@@ -55,6 +56,7 @@ const state = {
   labelAssignments: {},
   labelColors: {},
   labelFilter: "",
+  sort: { key: "", dir: "asc" },
   rssFolderBrowser: {
     currentPath: "",
     currentDisplay: "/downloads",
@@ -308,6 +310,7 @@ async function init() {
   try {
     state.tvLibraryVisible = localStorage.getItem(TV_LIBRARY_KEY) !== "off";
     state.labelsVisible = localStorage.getItem(LABELS_VISIBLE_KEY) !== "off";
+    loadSort();
   } catch (error) {
     state.tvLibraryVisible = true;
     state.labelsVisible = true;
@@ -1183,6 +1186,109 @@ function renderStats() {
 
 /* Torrents */
 
+const SORT_DEFAULT_DIR = {
+  name: "asc",
+  status: "asc",
+  size: "desc",
+  progress: "desc",
+  speed: "desc",
+};
+
+const SORT_STATE_ORDER = {
+  downloading: 0,
+  initializing: 1,
+  seeding: 2,
+  paused: 3,
+  error: 4,
+};
+
+function loadSort() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SORT_KEY) || "null");
+    if (raw && typeof raw.key === "string" && (raw.dir === "asc" || raw.dir === "desc")) {
+      state.sort = { key: raw.key, dir: raw.dir };
+    }
+  } catch (error) {
+    state.sort = { key: "", dir: "asc" };
+  }
+}
+
+function saveSort() {
+  try {
+    localStorage.setItem(SORT_KEY, JSON.stringify(state.sort));
+  } catch (error) {
+    // Storage can be full or blocked; sorting still works for this session.
+  }
+}
+
+function sortValue(torrent, key) {
+  switch (key) {
+    case "name":
+      return String(torrent.name || "").toLowerCase();
+    case "status":
+      return SORT_STATE_ORDER[torrent.state] ?? 5;
+    case "size":
+      return Number(torrent.total_bytes) || 0;
+    case "progress":
+      return Number(torrent.progress) || 0;
+    case "speed":
+      return (Number(torrent.download_speed_bps) || 0) + (Number(torrent.upload_speed_bps) || 0);
+    default:
+      return 0;
+  }
+}
+
+function sortTorrents(torrents) {
+  const { key, dir } = state.sort;
+  if (!key) return torrents;
+  const factor = dir === "desc" ? -1 : 1;
+  return [...torrents].sort((a, b) => {
+    if (key === "name") {
+      return (
+        factor *
+        String(a.name || "").localeCompare(String(b.name || ""), undefined, {
+          numeric: true,
+          sensitivity: "base",
+        })
+      );
+    }
+    const diff = sortValue(a, key) - sortValue(b, key);
+    if (diff !== 0) return factor * diff;
+    return String(a.name || "").localeCompare(String(b.name || ""), undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+  });
+}
+
+function setSort(key) {
+  if (!key) return;
+  if (state.sort.key === key) {
+    state.sort = { key, dir: state.sort.dir === "asc" ? "desc" : "asc" };
+  } else {
+    state.sort = { key, dir: SORT_DEFAULT_DIR[key] || "asc" };
+  }
+  saveSort();
+  renderTorrents();
+}
+
+function applySortIndicator() {
+  const buttons = document.querySelectorAll(".sort-button");
+  for (const button of buttons) {
+    const key = button.dataset.sort;
+    const active = state.sort.key === key;
+    button.classList.toggle("is-active", active);
+    button.dataset.dir = active ? state.sort.dir : "";
+    button.setAttribute(
+      "aria-sort",
+      active ? (state.sort.dir === "asc" ? "ascending" : "descending") : "none"
+    );
+    button.title = t("Sortér efter {column}", {
+      column: button.querySelector("span")?.textContent || key,
+    });
+  }
+}
+
 function filteredTorrents() {
   const query = state.search.trim().toLowerCase();
   return state.torrents.filter((torrent) => {
@@ -1200,7 +1306,8 @@ function filteredTorrents() {
 }
 
 function renderTorrents() {
-  const torrents = filteredTorrents();
+  const torrents = sortTorrents(filteredTorrents());
+  applySortIndicator();
   renderLabels();
   $("#torrent-count").textContent = String(torrents.length);
   const empty = $("#torrent-empty");
@@ -3022,6 +3129,9 @@ function bindGlobalEvents() {
   $("#speed-upload-enabled").addEventListener("change", updateSpeedRows);
   $("#seeding-save").addEventListener("click", saveSeedingSettings);
   $("#seeding-keep").addEventListener("change", updateSeedingRows);
+  for (const button of document.querySelectorAll(".sort-button")) {
+    button.addEventListener("click", () => setSort(button.dataset.sort));
+  }
   $("#dht-save").addEventListener("click", saveDhtSettings);
   $("#i2p-save").addEventListener("click", saveI2pSettings);
   $("#i2p-test").addEventListener("click", testI2pConnection);

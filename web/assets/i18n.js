@@ -223,6 +223,7 @@
     "Ikke tjekket endnu": "Not checked yet",
     "Tjek nu": "Check now",
     "Rediger": "Edit",
+    "Sortér efter {column}": "Sort by {column}",
     "I2P er slået til. Genstart serveren for at anvende SOCKS-proxy og mixed mode.": "I2P is enabled. Restart the server to apply the SOCKS proxy and mixed mode.",
     "I2P er slået fra. Genstart serveren efter du har slået det til.": "I2P is disabled. Restart the server after enabling it.",
     "I2P-indstillinger gemt. Genstart serveren for at anvende dem.": "I2P settings saved. Restart the server to apply them.",

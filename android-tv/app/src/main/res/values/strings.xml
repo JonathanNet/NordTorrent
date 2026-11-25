@@ -100,4 +100,12 @@
     <string name="error_rate_limited">Too many attempts. Try again in a moment.</string>
     <string name="error_server">The server responded with error %1$d.</string>
     <string name="error_missing_server">The server address is missing.</string>
+    <string name="stat_download">DOWNLOAD</string>
+    <string name="stat_upload">UPLOAD</string>
+    <string name="stat_active">ACTIVE</string>
+    <string name="stat_downloaded">DOWNLOADED</string>
+    <plurals name="stat_torrents">
+        <item quantity="one">%d torrent</item>
+        <item quantity="other">%d torrents</item>
+    </plurals>
 </resources>

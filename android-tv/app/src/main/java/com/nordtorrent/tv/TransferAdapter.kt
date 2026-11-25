@@ -30,6 +30,8 @@ class TransferAdapter(
         private val title: TextView = itemView.findViewById(R.id.transfer_title)
         private val meta: TextView = itemView.findViewById(R.id.transfer_meta)
         private val status: TextView = itemView.findViewById(R.id.transfer_status)
+        private val labelChip: TextView = itemView.findViewById(R.id.transfer_label)
+        private val percent: TextView = itemView.findViewById(R.id.transfer_percent)
         private val speed: TextView = itemView.findViewById(R.id.transfer_speed)
         private val progress: ProgressBar = itemView.findViewById(R.id.transfer_progress)
 
@@ -53,6 +55,13 @@ class TransferAdapter(
             meta.text = "${formatBytes(torrent.progressBytes)} / ${formatBytes(torrent.totalBytes)}"
             status.text = torrentStateLabel(itemView.context, torrent)
             status.setTextColor(torrentStateColor(torrent))
+            if (torrent.label.isBlank()) {
+                labelChip.visibility = View.GONE
+            } else {
+                labelChip.visibility = View.VISIBLE
+                labelChip.text = torrent.label
+            }
+            percent.text = "${progressPercent(torrent.progress)}%"
             val speedText = when {
                 torrent.error != null -> torrent.error
                 torrent.downloadSpeedBps > 1 -> "↓ ${formatSpeed(torrent.downloadSpeedBps)}"
@@ -62,6 +71,8 @@ class TransferAdapter(
             }
             speed.text = speedText
             progress.progress = progressPercent(torrent.progress)
+            progress.progressTintList =
+                android.content.res.ColorStateList.valueOf(torrentStateColor(torrent))
             icon.setImageResource(
                 when {
                     torrent.state == "error" -> R.drawable.ic_alert
