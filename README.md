@@ -83,6 +83,13 @@ You can also grab the source from **Code -> Download ZIP**, or clone the reposit
 The launcher keeps `data\` and `downloads\` next to the executable, so the whole install can be moved as one folder. To use a media disk, edit `NORDTORRENT_DOWNLOAD_DIR` in the `cmd` file. `README.txt` in the zip covers the firewall, HTTPS and the optional ffmpeg thumbnails.
 ## Quick start with Docker
 
+The published image is on Docker Hub:
+
+```bash
+docker pull jonathannet/nordtorrent:latest
+```
+
+
 Requirements: Docker and Docker Compose on a Linux machine (a Proxmox VM or LXC with Docker works fine).
 
 ```bash

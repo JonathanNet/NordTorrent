@@ -74,6 +74,39 @@ If Actions cannot build (for example a Windows toolchain problem), create the re
 2. Run the packaging steps above and upload `dist/nordtorrent-<version>-windows-x64.zip`.
 3. Upload the `nordtorrent-<version>-source.zip` you created with `git archive` if you want a source archive with the same folder layout as the Windows zip.
 
+## Docker Hub
+
+Published image: `jonathannet/nordtorrent`
+
+```bash
+docker pull jonathannet/nordtorrent:0.4.0
+docker pull jonathannet/nordtorrent:latest
+```
+
+The image is built and pushed by `.github/workflows/docker.yml` on every `v*` tag, for `linux/amd64` and `linux/arm64` via buildx. It needs two repository secrets:
+
+| Secret | Value |
+| --- | --- |
+| `DOCKERHUB_USERNAME` | `jonathannet` |
+| `DOCKERHUB_TOKEN` | an access token from Docker Hub -> Account settings -> Security |
+
+You can also run the workflow manually from the Actions tab (`workflow_dispatch`); it then tags the image with the version from `server/Cargo.toml`, `latest`, and `sha-<commit>`.
+
+For a local or remote push without CI, the maintainer uses `scripts/docker-push.ps1`:
+
+```powershell
+$env:DOCKERHUB_TOKEN = "dckr_pat_..."
+
+# Local Docker
+powershell -ExecutionPolicy Bypass -File .\scripts\docker-push.ps1 -AlsoLatest
+
+# No Docker on Windows: build and push on the Linux host over SSH
+powershell -ExecutionPolicy Bypass -File .\scripts\docker-push.ps1 -Remote `
+  -SshHost 192.168.1.10 -SshUser root -AlsoLatest
+```
+
+The tag defaults to the version in `server/Cargo.toml`. That script is local-only and is not part of the published repository.
+
 ## Versioning
 
 `server/Cargo.toml` is the single source of truth: both workflows read the version from it, so asset names, tag and binary version stay in sync.

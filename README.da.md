@@ -80,6 +80,13 @@ Du kan også hente kilden via **Code -> Download ZIP** eller klone repositoryet.
 Launcheren holder `data\` og `downloads\` ved siden af exe-filen, så hele installationen kan flyttes som én mappe. Vil du bruge en mediedisk, så ret `NORDTORRENT_DOWNLOAD_DIR` i `cmd`-filen. `README.txt` i zip-filen beskriver firewall, HTTPS og de valgfrie ffmpeg-previewbilleder.
 ## Hurtig start med Docker
 
+Det publicerede image ligger på Docker Hub:
+
+```bash
+docker pull jonathannet/nordtorrent:latest
+```
+
+
 Forudsætning: Docker + Docker Compose på en Linux-maskine (fx en Proxmox-VM eller -LXC med Docker).
 
 ```bash
